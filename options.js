@@ -378,6 +378,26 @@ async function collectDiagnosticReport() {
   return response.report;
 }
 
+function offerDiagnosticEmail(filename) {
+  const recipient = "weihao.chiu@gmail.com";
+  const shouldOpenMail = confirm(tr(
+    `診斷報告已下載：${filename}\n\n若需要開發者協助，可寄到：\n${recipient}\n\n是否開啟系統預設郵件程式？\n\n提醒：請自行附加剛下載的診斷報告。`,
+    `Diagnostic report downloaded: ${filename}\n\nFor developer support, email:\n${recipient}\n\nOpen your system's default email application?\n\nReminder: attach the downloaded diagnostic report manually.`
+  ));
+  if (!shouldOpenMail) return;
+
+  const version = chrome.runtime.getManifest().version;
+  const subject = tr(
+    `CGU 郵件查詢外掛 v${version} 診斷報告`,
+    `CGU Postal Checker v${version} diagnostic report`
+  );
+  const body = tr(
+    `您好：\n\n我在使用 CGU 郵件查詢外掛時遇到問題。\n\n外掛版本：${version}\n診斷檔名：${filename}\n\n請在寄出前手動附加上述診斷報告，並在此補充問題說明：\n`,
+    `Hello,\n\nI encountered a problem while using CGU Postal Checker.\n\nExtension version: ${version}\nDiagnostic filename: ${filename}\n\nPlease manually attach the diagnostic report before sending and add a description of the problem here:\n`
+  );
+  window.location.href = `mailto:${recipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+
 async function downloadDiagnostics(asZip) {
   const jsonButton = document.getElementById("downloadDiagnosticsJson");
   const zipButton = document.getElementById("downloadDiagnosticsZip");
@@ -397,6 +417,7 @@ async function downloadDiagnostics(asZip) {
         filename
       );
       showDiagnosticStatus(tr(`診斷 JSON 已下載：${filename}`, `Diagnostic JSON downloaded: ${filename}`));
+      offerDiagnosticEmail(filename);
       return;
     }
 
@@ -415,6 +436,7 @@ async function downloadDiagnostics(asZip) {
       `診斷 ZIP 已下載：${filename}${screenshot?.dataUrl ? "（含錯誤截圖）" : "（無錯誤截圖）"}`,
       `Diagnostic ZIP downloaded: ${filename}${screenshot?.dataUrl ? " (screenshot included)" : " (no screenshot available)"}`
     ));
+    offerDiagnosticEmail(filename);
   } catch (err) {
     showDiagnosticStatus(tr(`診斷報告失敗：${err.message || err}`, `Diagnostic report failed: ${err.message || err}`), true);
   } finally {

@@ -8,6 +8,8 @@
 
 設定備份及診斷報告只會在使用者按下下載按鈕後儲存到本機，不會自動上傳。診斷報告可能包含收件人姓名、查詢結果及本機路徑。
 
+診斷檔案下載後，外掛可在使用者確認後開啟系統預設郵件程式，並預填開發者 Email、主旨及診斷檔名。外掛不會自動附加或傳送診斷檔案；使用者必須自行檢查內容、加入附件並送出。
+
 錯誤畫面截圖預設關閉。使用者啟用後，Chrome 會要求可選的 `debugger` 權限，外掛只用該權限擷取長庚郵件查詢頁，並在本機保留最近一次錯誤畫面。關閉功能會移除權限與暫存截圖。截圖可能包含姓名及郵件資料。
 
 使用者可在設定頁清除紀錄，或移除擴充功能以刪除 Chrome 本機資料。更新檢查與錯誤截圖均可在設定頁關閉。
@@ -19,6 +21,8 @@ The extension stores recipient names/IDs, query filters, language, schedules, no
 Postal queries are sent only to `https://www4.is.cgu.edu.tw/postal/`. When update checks are enabled, the extension reads the project's public `manifest.json` from GitHub; this request contains no recipient data or query history. User data is not sold or shared.
 
 Settings backups and diagnostic reports are saved locally only after the user selects a download button; they are never uploaded automatically. Diagnostics may contain recipient names, query results, and a local path.
+
+After a diagnostic download, the extension can open the system's default email application only after user confirmation and prefill the developer address, subject, and diagnostic filename. It does not attach or send the report automatically; the user must review the contents, add the attachment, and send the message.
 
 Error screenshots are off by default. Enabling the option requests the optional `debugger` permission, which is used only to capture the CGU postal query page. The extension keeps only the latest error screenshot locally. Disabling the feature removes the permission and cached screenshot. A screenshot may contain names and mail details.
 

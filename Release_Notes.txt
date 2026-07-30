@@ -1,4 +1,8 @@
-CGU Postal Mail Checker v1.2.0 | Release Notes
+CGU Postal Mail Checker v1.2.1 | Release Notes
+
+- After a diagnostic JSON or ZIP download, displays the developer email address and asks whether to open the system's default email application.
+- Prefills the recipient, subject, extension version, and diagnostic filename without depending on Gmail or another specific provider.
+- Reminds the user to attach the downloaded report manually; the extension never claims to attach local files automatically.
 
 - Adds complete settings backup and validated import.
 - Adds diagnostic JSON and ZIP reports with version, browser, query-field, error-log, and latest-result information.

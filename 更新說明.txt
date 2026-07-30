@@ -1,3 +1,8 @@
+v1.2.1 更新內容
+- 下載診斷 JSON／ZIP 後，顯示開發者 Email `weihao.chiu@gmail.com`，並詢問是否開啟系統預設郵件程式。
+- 郵件會預填收件人、主旨、外掛版本與診斷檔名，不綁定 Gmail 或其他特定服務。
+- 外掛會提醒使用者自行附加已下載的診斷報告，不會宣稱已自動附檔。
+
 v1.2.0 更新內容
 - 新增完整設定備份與驗證後匯入，可還原收件人、排程、通知、語言與原始程式資料夾備忘。
 - 新增診斷 JSON／ZIP，包含外掛版本、Chrome 版本、查詢欄位狀態、錯誤紀錄與最近查詢結果。
@@ -16,6 +21,11 @@ v1.1.1 更新內容
 - 新增開啟 Chrome 擴充功能頁、開啟下載資料夾與原始程式資料夾備忘。
 - 每天自動檢查 GitHub 最新版本，並提供下載與雙語升級教學。
 - 新增英文檔名的 User Guide、Upgrade Guide、Quick Installation 與 Release Notes；英文介面的相關按鈕會直接開啟英文文件。
+
+v1.2.1 changes
+- After a diagnostic JSON/ZIP download, displays the developer email address and asks whether to open the system's default email application.
+- Prefills the recipient, subject, extension version, and diagnostic filename without depending on Gmail or another specific provider.
+- Reminds the user to attach the downloaded report manually; the extension never claims to attach local files automatically.
 
 v1.2.0 changes
 - Adds complete settings backup and validated import for recipients, schedules, notifications, language, and the source-folder note.
