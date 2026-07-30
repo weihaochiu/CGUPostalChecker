@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <title>CGU Postal Mail Checker - Upgrade Guide</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="container guide">
+    <div class="language-card card">
+      <label for="guideLanguage">語言 / Language</label>
+      <select id="guideLanguage"><option value="zh-TW">繁體中文</option><option value="en">English</option></select>
+    </div>
+    <article data-guide-lang="zh-TW">
+      <h1>升級教學</h1>
+      <div class="notice"><strong>不要先按「移除」外掛。</strong>保留同一個未封裝外掛項目並覆蓋原資料夾，Chrome 儲存的收件人與設定通常會保留。</div>
+      <div class="card"><h2>升級步驟</h2><ol>
+        <li>在設定頁記下「已安裝版本」，並可先從紀錄頁匯出 JSON 備份。</li>
+        <li>按「下載最新版」，取得 GitHub main 分支 ZIP。</li>
+        <li>關閉外掛 Popup；將 ZIP 解壓縮到暫存資料夾。</li>
+        <li>確認解壓縮內容直接包含 <code>manifest.json</code>。</li>
+        <li>把新版資料夾內的所有檔案覆蓋到原外掛資料夾。不要只覆蓋部分檔案。</li>
+        <li>開啟 <code>chrome://extensions/</code>，找到本外掛並按「重新載入」。</li>
+        <li>開啟設定，確認版本、語言、收件人與監控設定仍正確。</li>
+        <li>先按「立即查詢一次」。若圖示沒有紅色 ! 且各收件人有最新查詢時間，即完成升級。</li>
+      </ol></div>
+      <div class="card"><h2>若設定消失</h2><p>通常代表刪除了舊外掛後又重新載入，造成新的擴充功能識別狀態。請重新設定收件人；先前匯出的 JSON 目前只供查閱，不能直接匯入設定。</p></div>
+    </article>
+    <article data-guide-lang="en" hidden>
+      <h1>Upgrade Guide</h1>
+      <div class="notice"><strong>Do not remove the extension first.</strong> Keep the same unpacked extension entry and replace files in its existing folder so Chrome can retain recipients and settings.</div>
+      <div class="card"><h2>Steps</h2><ol>
+        <li>Note the installed version and optionally export the history JSON as a backup.</li>
+        <li>Select <strong>Download latest</strong> to get the GitHub main-branch ZIP.</li>
+        <li>Close the popup and extract the ZIP to a temporary folder.</li>
+        <li>Confirm the extracted extension folder directly contains <code>manifest.json</code>.</li>
+        <li>Copy every new file over the existing extension folder. Do not update only some files.</li>
+        <li>Open <code>chrome://extensions/</code> and select <strong>Reload</strong> for this extension.</li>
+        <li>Open Settings and verify the version, language, recipients, and monitoring options.</li>
+        <li>Select <strong>Check now</strong>. The upgrade is complete when no red ! appears and every recipient has a recent check time.</li>
+      </ol></div>
+      <div class="card"><h2>If settings disappear</h2><p>This usually means the old extension was removed before loading the new copy. Configure recipients again. The exported history JSON is for reference and cannot currently restore settings.</p></div>
+    </article>
+  </main>
+  <script src="i18n.js"></script>
+  <script src="guide.js"></script>
+</body>
+</html>

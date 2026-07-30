@@ -2,23 +2,23 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="utf-8">
-  <title>長庚大學自動查詢郵件</title>
+  <title>CGU Postal Mail Checker</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body class="popup">
-  <h3>長庚大學自動查詢郵件</h3>
+  <h3 data-i18n="appName">長庚大學自動查詢郵件</h3>
 
-  <div class="status-line"><strong>狀態</strong><span id="enabledBadge" class="badge">讀取中</span></div>
-  <div class="status-line"><strong>收件人</strong><span id="recipientCount">-</span></div>
-  <div class="status-line"><strong>上次查詢</strong><span id="lastCheckTime">-</span></div>
-  <div class="status-line"><strong>下次自動允許</strong><span id="nextAllowedCheckAt">-</span></div>
-  <div class="status-line"><strong>結果</strong><span id="lastResultText">-</span></div>
+  <div class="status-line"><strong data-i18n="status">狀態</strong><span id="enabledBadge" class="badge">-</span></div>
+  <div class="status-line"><strong data-i18n="recipients">收件人</strong><span id="recipientCount">-</span></div>
+  <div class="status-line"><strong data-i18n="lastCheck">上次查詢</strong><span id="lastCheckTime">-</span></div>
+  <div class="status-line"><strong data-i18n="nextCheck">下次自動允許</strong><span id="nextAllowedCheckAt">-</span></div>
+  <div class="status-line"><strong data-i18n="result">結果</strong><span id="lastResultText">-</span></div>
 
   <hr>
 
   <section class="popup-results-section" aria-labelledby="recipientResultsTitle">
     <div class="popup-section-header">
-      <h4 id="recipientResultsTitle">各收件人查詢結果</h4>
+      <h4 id="recipientResultsTitle" data-i18n="recipientResults">各收件人查詢結果</h4>
       <span id="resultTotal" class="result-total">合計 - 件</span>
     </div>
     <div id="recipientResults" class="recipient-results" aria-live="polite">
@@ -28,18 +28,27 @@
 
   <hr>
 
+  <section id="updateBanner" class="update-banner" hidden>
+    <strong id="updateStatus"></strong>
+    <div class="button-row compact">
+      <button id="downloadUpdate" class="success" data-i18n="downloadLatest">下載最新版</button>
+      <button id="upgradeGuide" class="secondary" data-i18n="upgradeGuide">升級教學</button>
+    </div>
+  </section>
+
   <div class="button-row">
-    <button id="checkNow">立即查詢一次</button>
-    <button id="start" class="success">開始監控</button>
-    <button id="stop" class="danger">停止監控</button>
-    <button id="openPostal" class="secondary">開啟查詢頁</button>
-    <button id="options" class="secondary">設定</button>
-    <button id="history" class="secondary">紀錄</button>
-    <button id="tutorial" class="secondary">使用教學</button>
+    <button id="checkNow" data-i18n="checkNow">立即查詢一次</button>
+    <button id="start" class="success" data-i18n="startMonitor">開始監控</button>
+    <button id="stop" class="danger" data-i18n="stopMonitor">停止監控</button>
+    <button id="openPostal" class="secondary" data-i18n="openPostal">開啟查詢頁</button>
+    <button id="options" class="secondary" data-i18n="settings">設定</button>
+    <button id="history" class="secondary" data-i18n="history">紀錄</button>
+    <button id="tutorial" class="secondary" data-i18n="userGuide">使用教學</button>
   </div>
 
   <p id="message" class="small"></p>
 
+  <script src="i18n.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

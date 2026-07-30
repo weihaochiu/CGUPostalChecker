@@ -1,4 +1,5 @@
 const msgEl = document.getElementById("message");
+let currentLanguage = "zh-TW";
 
 const POPUP_STORAGE_KEYS = [
   "enabled",
@@ -11,15 +12,26 @@ const POPUP_STORAGE_KEYS = [
   "lastCheckTime",
   "nextAllowedCheckAt",
   "lastResultText",
-  "activeRun"
+  "activeRun",
+  "language",
+  "lastRunStatus",
+  "lastRunErrors",
+  "latestVersion",
+  "updateAvailable",
+  "updateCheckStatus"
 ];
+
+function tr(key, replacements = {}) {
+  return CGUI18N.t(currentLanguage, key, replacements);
+}
 
 function showMessage(text) {
   msgEl.textContent = text;
 }
 
-function formatTime(value, fallback = "尚未查詢") {
-  if (!value) return fallback;
+function formatTime(value, fallback = null) {
+  const resolvedFallback = fallback ?? tr("neverChecked");
+  if (!value) return resolvedFallback;
   const timestamp = typeof value === "number" ? value : Date.parse(value);
   if (!Number.isFinite(timestamp)) return String(value);
   try {
@@ -49,20 +61,21 @@ function recipientQueryKey(recipient, settings = {}) {
 function statusLabel(status) {
   const normalized = normalizeSettingValue(status, "");
   return ({
-    "": "全部",
-    "0": "未領取",
-    "1": "已領取",
-    "2": "退件"
-  })[normalized] || "全部";
+    "": tr("all"),
+    "0": tr("unread"),
+    "1": tr("received"),
+    "2": tr("returned")
+  })[normalized] || tr("all");
 }
 
 function dateTypeLabel(value) {
-  return normalizeSettingValue(value, "0") === "1" ? "退件日期" : "收件日期";
+  return normalizeSettingValue(value, "0") === "1" ? tr("returnDate") : tr("receiveDate");
 }
 
 function dateIntervalLabel(value) {
   const normalized = normalizeSettingValue(value, "1");
-  return ({ "1": "1 個月", "3": "3 個月", "6": "6 個月" })[normalized] || `${normalized} 個月`;
+  return ({ "1": tr("oneMonth"), "3": tr("threeMonths"), "6": tr("sixMonths") })[normalized]
+    || (currentLanguage === "en" ? `${normalized} months` : `${normalized} 個月`);
 }
 
 function isSameRecipientQuery(a, b, settings) {
@@ -83,8 +96,8 @@ function renderRecipientResults(data, recipients) {
   container.replaceChildren();
 
   if (!recipients.length) {
-    container.appendChild(createTextElement("div", "recipient-result-empty", "尚未設定啟用中的收件人"));
-    totalEl.textContent = "合計 0 件";
+    container.appendChild(createTextElement("div", "recipient-result-empty", tr("noRecipient")));
+    totalEl.textContent = tr("total", { count: 0 });
     return;
   }
 
@@ -107,7 +120,8 @@ function renderRecipientResults(data, recipients) {
     const checking = isSameRecipientQuery(activeRecipient, recipient, data);
 
     const card = document.createElement("article");
-    card.className = `popup-recipient-result${checking ? " checking" : ""}${Number(count) > 0 ? " has-mail" : ""}`;
+    const failed = detail.queryStatus === "error";
+    card.className = `popup-recipient-result${checking ? " checking" : ""}${Number(count) > 0 ? " has-mail" : ""}${failed ? " has-error" : ""}`;
 
     const main = document.createElement("div");
     main.className = "popup-recipient-main";
@@ -123,8 +137,8 @@ function renderRecipientResults(data, recipients) {
 
     const countBox = document.createElement("div");
     countBox.className = "popup-recipient-count";
-    countBox.appendChild(createTextElement("strong", "", count === null ? "—" : String(count)));
-    countBox.appendChild(createTextElement("span", "", "件"));
+    countBox.appendChild(createTextElement("strong", "", failed ? "!" : count === null ? "—" : String(count)));
+    if (!failed) countBox.appendChild(createTextElement("span", "", tr("pieces")));
 
     main.append(identity, countBox);
     card.appendChild(main);
@@ -132,51 +146,68 @@ function renderRecipientResults(data, recipients) {
     const meta = document.createElement("div");
     meta.className = "popup-recipient-meta";
     if (checking) {
-      meta.appendChild(createTextElement("span", "popup-querying-label", "查詢中"));
+      meta.appendChild(createTextElement("span", "popup-querying-label", tr("checking")));
+    } else if (failed) {
+      meta.className += " error-text";
+      meta.textContent = `${tr("failedAt", { time: formatTime(detail.failedAt) })}｜${detail.errorMessage || tr("queryError")}`;
     } else if (detail.checkedAt) {
-      meta.textContent = `最後查詢：${formatTime(detail.checkedAt)}`;
+      meta.textContent = tr("lastCheckedAt", { time: formatTime(detail.checkedAt) });
     } else {
-      meta.textContent = "尚未依此條件完成查詢";
+      meta.textContent = tr("noConditionResult");
     }
     card.appendChild(meta);
 
     container.appendChild(card);
   }
 
-  totalEl.textContent = `合計 ${total} 件`;
+  totalEl.textContent = tr("total", { count: total });
 }
 
 async function loadStatus() {
   const data = await chrome.storage.local.get(POPUP_STORAGE_KEYS);
+  currentLanguage = CGUI18N.normalizeLanguage(data.language);
+  CGUI18N.apply(currentLanguage);
 
   const enabledBadge = document.getElementById("enabledBadge");
-  if (data.enabled) {
-    enabledBadge.textContent = data.activeRun ? "查詢中" : "監控中";
+  const hasErrors = Array.isArray(data.lastRunErrors) && data.lastRunErrors.length > 0;
+  if (hasErrors && !data.activeRun) {
+    enabledBadge.textContent = tr("queryError");
+    enabledBadge.className = "badge error";
+  } else if (data.enabled) {
+    enabledBadge.textContent = data.activeRun ? tr("checking") : tr("monitoring");
     enabledBadge.className = "badge on";
   } else {
-    enabledBadge.textContent = data.activeRun ? "查詢中" : "已停止";
+    enabledBadge.textContent = data.activeRun ? tr("checking") : tr("stopped");
     enabledBadge.className = data.activeRun ? "badge on" : "badge off";
   }
 
   const recipients = (data.recipients || []).filter(r => r && r.enabled && r.name);
-  document.getElementById("recipientCount").textContent = `${recipients.length} 人`;
+  document.getElementById("recipientCount").textContent = String(recipients.length);
   document.getElementById("lastCheckTime").textContent = formatTime(data.lastCheckTime);
   document.getElementById("nextAllowedCheckAt").textContent = data.nextAllowedCheckAt
-    ? formatTime(Number(data.nextAllowedCheckAt), "尚未排定")
-    : "尚未排定";
-  document.getElementById("lastResultText").textContent = data.lastResultText || "尚未查詢";
+    ? formatTime(Number(data.nextAllowedCheckAt), tr("notScheduled"))
+    : tr("notScheduled");
+  document.getElementById("lastResultText").textContent = hasErrors
+    ? tr("queryError")
+    : data.lastResultText || tr("neverChecked");
+
+  const updateBanner = document.getElementById("updateBanner");
+  updateBanner.hidden = !data.updateAvailable;
+  if (data.updateAvailable) {
+    document.getElementById("updateStatus").textContent = tr("updateAvailable", { version: data.latestVersion || "" });
+  }
 
   renderRecipientResults(data, recipients);
 }
 
 function send(type) {
-  showMessage("處理中…");
+  showMessage(tr("processing"));
   chrome.runtime.sendMessage({ type }, res => {
     if (chrome.runtime.lastError) {
-      showMessage(`操作失敗：${chrome.runtime.lastError.message}`);
+      showMessage(tr("operationFailed", { message: chrome.runtime.lastError.message }));
       return;
     }
-    showMessage(res?.message || "完成");
+    showMessage(res?.message || tr("completed"));
     loadStatus();
   });
 }
@@ -193,6 +224,8 @@ document.getElementById("history").addEventListener("click", () => {
 document.getElementById("tutorial").addEventListener("click", () => {
   chrome.tabs.create({ url: chrome.runtime.getURL("使用教學.html") });
 });
+document.getElementById("downloadUpdate").addEventListener("click", () => send("CGU_OPEN_UPDATE_DOWNLOAD"));
+document.getElementById("upgradeGuide").addEventListener("click", () => send("CGU_OPEN_UPGRADE_GUIDE"));
 
 chrome.storage.onChanged.addListener((changes, areaName) => {
   if (areaName !== "local") return;

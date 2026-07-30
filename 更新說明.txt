@@ -1,32 +1,15 @@
-長庚大學自動查詢郵件 v1.0.7 Popup 更新包
+v1.1.0 更新內容
+- 修正第一位收件人因頁面尚未準備而被跳過。
+- 查詢失敗時自動重試三次並保留實際錯誤。
+- 任一收件人失敗時，外掛圖示顯示紅色 !，Popup 顯示失敗者與原因。
+- 只有所有收件人成功後才顯示「查詢完成」並清除錯誤 badge。
+- 新增繁體中文／英文切換，涵蓋介面、說明與教學。
+- 每天自動檢查 GitHub 最新版本，並提供下載與雙語升級教學。
 
-新增功能：
-1. 點擊 Chrome 右上角外掛圖示後，直接顯示各收件人的查詢結果。
-2. 每位收件人分開顯示：
-   - 姓名
-   - 郵件狀態（全部／未領取／已領取／退件）
-   - 日期類型與日期區間
-   - 件數
-   - 最後查詢時間
-3. 顯示所有啟用收件人的件數合計。
-4. 查詢進行中時，對應收件人會顯示「查詢中」。
-5. 若更改查詢條件但尚未重新查詢，顯示「尚未依此條件完成查詢」，不沿用舊狀態的錯誤件數。
-6. Popup 開啟期間，查詢結果更新後會自動刷新。
-
-更新方式：
-1. 先關閉 Chrome，或先不要操作外掛。
-2. 解壓縮本更新包。
-3. 將以下四個檔案覆蓋到原外掛資料夾：
-   manifest.json
-   popup.html
-   popup.js
-   styles.css
-4. 原外掛資料夾預設位置：
-   C:\Program Files\Google\ChromeExtensions\CGUPostalChecker
-5. 開啟 Chrome，前往 chrome://extensions/
-6. 找到「長庚大學自動查詢郵件」，按「重新載入」。
-7. 確認版本顯示 1.0.7。
-8. 點外掛圖示即可看到各收件人查詢結果。
-
-注意：
-此更新包只覆蓋 Popup 與介面相關檔案，不會刪除或重設原本的收件人設定與查詢紀錄。
+v1.1.0 changes
+- Prevents the first recipient from being skipped before the page is ready.
+- Retries failed recipient queries three times and preserves the actual error.
+- Shows a red ! badge and recipient-level details when any query fails.
+- Clears the error badge only after every recipient succeeds.
+- Adds Traditional Chinese and English interfaces, descriptions, and guides.
+- Checks GitHub daily and provides download links plus a bilingual upgrade guide.

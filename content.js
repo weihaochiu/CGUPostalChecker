@@ -142,15 +142,11 @@
     const { runId, tabId, index, recipient } = message;
 
     if (!isQueryPageReady()) {
-      chrome.runtime.sendMessage({
-        type: "CGU_LOGIN_REQUIRED",
-        runId,
-        tabId,
-        index,
-        recipient,
+      return {
+        ok: false,
+        errorCode: "QUERY_FIELDS_NOT_FOUND",
         message: "找不到查詢欄位，可能尚未登入或頁面不是郵件查詢頁"
-      });
-      return { ok: false, message: "找不到查詢欄位" };
+      };
     }
 
     await fillReceiver(recipient);
@@ -193,6 +189,7 @@
         tabId: pending.tabId,
         index: pending.index,
         recipient: pending.recipient,
+        errorCode: "QUERY_FIELDS_NOT_FOUND",
         message: "查詢後找不到表單，可能登入失效"
       });
       await chrome.storage.local.set({ pendingParse: null });
@@ -217,6 +214,17 @@
 
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     (async () => {
+      if (message.type === "CGU_PING") {
+        const ready = isQueryPageReady();
+        sendResponse({
+          ok: ready,
+          ready,
+          errorCode: ready ? "" : "QUERY_FIELDS_NOT_FOUND",
+          message: ready ? "" : "找不到查詢欄位，可能尚未登入或頁面不是郵件查詢頁",
+          url: location.href
+        });
+        return;
+      }
       if (message.type === "CGU_RUN_RECIPIENT") {
         const result = await runRecipient(message);
         sendResponse(result);

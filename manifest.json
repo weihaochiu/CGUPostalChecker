@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "長庚大學自動查詢郵件",
-  "short_name": "長庚郵件查詢",
-  "version": "1.0.7",
-  "description": "自動定時查詢長庚大學郵件收發管理系統，支援多位收件人、郵件狀態分開統計、冷卻時間、隨機延遲、每日一次提醒，以及 Popup 顯示各人查詢結果。",
+  "name": "長庚大學郵件查詢｜CGU Postal Checker",
+  "short_name": "CGU Postal",
+  "version": "1.1.0",
+  "description": "長庚郵件自動查詢、錯誤提示與版本檢查。CGU postal queries, error alerts, and update checks.",
   "permissions": [
     "alarms",
     "notifications",
@@ -12,7 +12,8 @@
     "tabs"
   ],
   "host_permissions": [
-    "https://www4.is.cgu.edu.tw/postal/*"
+    "https://www4.is.cgu.edu.tw/postal/*",
+    "https://raw.githubusercontent.com/weihaochiu/CGUPostalChecker/main/*"
   ],
   "background": {
     "service_worker": "background.js"

@@ -1,41 +1,17 @@
-# 隱私權政策草稿：長庚大學自動查詢郵件
+# 隱私權政策草稿｜Privacy Policy Draft
 
-本擴充套件用於協助使用者查詢長庚大學郵件收發管理系統。
+## 繁體中文
 
-## 蒐集與儲存的資料
+本擴充功能在 Chrome 本機儲存收件人姓名／ID、查詢條件、語言、排程、通知狀態及查詢紀錄。它不要求、蒐集或儲存長庚帳號、密碼或自動登入憑證。
 
-本擴充套件會在使用者的 Chrome 本機儲存下列設定與紀錄：
+郵件查詢只會送往 `https://www4.is.cgu.edu.tw/postal/`。若啟用更新檢查，外掛會讀取 GitHub 上本專案的公開 `manifest.json`；此請求不包含收件人或查詢紀錄。資料不會出售或分享給第三方。
 
-- 使用者自行輸入的收件人姓名或收件人 ID
-- 查詢條件，例如郵件狀態、日期類型、日期區間
-- 查詢排程設定
-- 是否已提醒過的本機紀錄
-- 查詢紀錄與查詢結果摘要
+使用者可在設定頁清除紀錄，或移除擴充功能以刪除 Chrome 本機資料。更新檢查可在設定頁關閉。
 
-## 不會蒐集的資料
+## English
 
-本擴充套件不會要求、蒐集或儲存：
+The extension stores recipient names/IDs, query filters, language, schedules, notification state, and query history locally in Chrome. It never requests, collects, or stores CGU account credentials or automatic-login tokens.
 
-- 長庚大學帳號
-- 長庚大學密碼
-- 任何自動登入憑證
+Postal queries are sent only to `https://www4.is.cgu.edu.tw/postal/`. When update checks are enabled, the extension reads the project's public `manifest.json` from GitHub; this request contains no recipient data or query history. User data is not sold or shared.
 
-## 資料傳輸
-
-本擴充套件僅會在使用者已登入長庚大學郵件收發管理系統後，向下列網址送出查詢請求：
-
-https://www4.is.cgu.edu.tw/postal/studentletter.aspx
-
-本擴充套件不會將資料傳送到第三方伺服器。
-
-## 資料分享
-
-本擴充套件不會出售、分享或轉移使用者資料給第三方。
-
-## 資料刪除
-
-使用者可以在外掛設定頁中清除已看過郵件紀錄與查詢紀錄，也可以移除擴充套件以刪除本機儲存資料。
-
-## 聯絡方式
-
-請填入開發者聯絡信箱。
+Users can clear records in Settings or remove the extension to delete Chrome-local data. Update checks can be disabled in Settings.

@@ -1,73 +1,47 @@
-# 長庚大學自動查詢郵件
+# 長庚大學自動查詢郵件｜CGU Postal Mail Checker
 
-Chrome Manifest V3 擴充套件，用於自動查詢長庚大學郵件收發管理系統：
+## 繁體中文
 
-https://www4.is.cgu.edu.tw/postal/studentletter.aspx
+Chrome Manifest V3 擴充功能，用於定時查詢長庚大學郵件收發管理系統。
 
-## 功能
+### v1.1.0 功能
 
-- 支援多位收件人輪流查詢
-- 支援未領取 / 全部 / 已領取 / 退件
-- 支援收件日期 / 退件日期、1 / 3 / 6 個月
-- 可設定 Chrome 開啟時自動查詢
-- 可設定固定間隔查詢
-- 沒有郵件或沒有新結果時，只寫入背景紀錄，不跳通知
-- 可設定「同一天同一收件人只提醒一次」
-- 可用外掛圖示 badge 顯示各收件人依其「郵件狀態」分開查到的件數加總
-- 滑鼠移到外掛圖示時，顯示各收件人的狀態與件數，例如「王大明 未領取 0件」
-- 可查看與匯出查詢紀錄
+- 多位收件人與不同郵件狀態、日期條件
+- 查詢頁就緒確認及最多三次自動重試
+- 查詢失敗時顯示紅色 `!` badge、失敗收件人及實際錯誤
+- 郵件件數 badge、每日一次提醒、查詢紀錄及 JSON 匯出
+- 繁體中文／英文介面、說明與教學
+- 每天檢查 GitHub 最新版本並提示下載
 
-## 安裝測試方式
+### 安裝
 
-1. 開啟 Chrome
-2. 前往 `chrome://extensions/`
-3. 打開右上角「開發人員模式」
-4. 點選「載入未封裝項目」
-5. 選擇本資料夾 `CGUPostalChecker`
-6. 先登入長庚大學郵件收發管理系統
-7. 點外掛圖示或進入設定頁，新增收件人並儲存
-8. 按「立即查詢一次」或「開始監控」
+請開啟 `使用教學.html`；升級既有版本請開啟 `升級教學.html`。
 
-## 注意事項
+### 重要限制
 
-- 本外掛不儲存學校帳號密碼。
-- 外掛使用 Chrome 目前登入狀態查詢。
-- 如果登入失效，需要使用者自行重新登入。
-- 建議自動查詢間隔使用 360 分鐘；此外掛會強制自動查詢最低間隔 120 分鐘，並加入隨機延遲，避免多人同時查詢造成伺服器負擔。
-- 此版本為可測試原型，實際結果表格欄位若與預期不同，可能需要根據查詢後的 HTML 微調解析邏輯。
+- 外掛使用目前 Chrome 的長庚網站登入狀態，不儲存帳號或密碼。
+- 外掛不會讀取 Gmail；收到通知信不等於外掛已完成下一次郵件系統查詢。
+- 未封裝擴充功能不能自動覆寫自己的本機檔案，因此更新採提示下載及手動重新載入。
 
-## Chrome Web Store 上架提醒
+## English
 
-若要上架 Chrome 線上應用程式商店，需要準備：
+This Chrome Manifest V3 extension periodically checks the CGU postal mail system.
 
-- 開發者帳號
-- 壓縮後的 ZIP 套件
-- 圖示、截圖、說明文字
-- 權限用途說明
-- 隱私權政策
-- 若此工具只適合校內使用，建議先用「未公開」或「私人發布」方式測試
+### v1.1.0 features
 
-## 完整使用教學
+- Multiple recipients with independent status and date filters
+- Page-readiness checks and up to three automatic retries
+- Red `!` badge, affected recipient, and actual error details on query failure
+- Mail-count badge, once-per-day notifications, history, and JSON export
+- Traditional Chinese and English interfaces, descriptions, and guides
+- Daily GitHub version checks with download prompts
 
-請閱讀 `使用教學.md` 或直接用瀏覽器開啟 `使用教學.html`。教學內容包含從解壓縮、載入 Chrome、設定收件人、立即查詢、自動排程、通知設定到故障排除。
+### Installation
 
+Open `使用教學.html`. For an existing installation, follow `升級教學.html`.
 
-## 從外掛開啟使用教學
+### Important limitations
 
-點 Chrome 右上角外掛圖示後，按「使用教學」即可開啟 `使用教學.html`。
-設定頁的「紀錄與維護」區塊也有「開啟使用教學」按鈕。
-
-## 範例姓名
-
-介面與教學中的範例姓名使用「王小明」，不使用實際使用者姓名。
-
-
-## 版本 1.0.6 更新重點
-
-- 自動查詢預設改為 360 分鐘。
-- 自動查詢最低間隔固定為 120 分鐘。
-- Chrome 開啟時不會立刻查詢；會先確認是否已到下次允許查詢時間，再隨機延遲 5–30 分鐘。
-- 每次查詢後會設定下一次允許查詢時間，並額外加入 0–30 分鐘隨機延遲。
-- 手動立即查詢加入 5 分鐘冷卻，避免誤按造成連續查詢。
-- 多收件人查詢加入 5–15 秒隨機間隔。
-- 加入查詢鎖與 3 分鐘卡住自動恢復，避免重複查詢流程互相干擾。
+- The extension uses the current CGU website session and never stores account credentials.
+- It does not read Gmail. A notification email can arrive before the next postal-system query.
+- An unpacked extension cannot overwrite its own local files, so updates use a download prompt and manual reload.

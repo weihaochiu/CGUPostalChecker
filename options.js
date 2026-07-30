@@ -1,5 +1,6 @@
 const DEFAULT_SETTINGS = {
   enabled: false,
+  language: "zh-TW",
   checkOnStartup: true,
   intervalEnabled: true,
   intervalMinutes: 360,
@@ -18,6 +19,10 @@ const DEFAULT_SETTINGS = {
   notifyOncePerDay: true,
   notifyLoginIssue: true,
   showBadge: true,
+  updateCheckEnabled: true,
+  latestVersion: "",
+  updateAvailable: false,
+  updateCheckStatus: "尚未檢查",
   openTabIfMissing: true,
   recipients: []
 };
@@ -25,6 +30,11 @@ const DEFAULT_SETTINGS = {
 const recipientsEl = document.getElementById("recipients");
 const template = document.getElementById("recipientTemplate");
 const msgEl = document.getElementById("message");
+let currentLanguage = "zh-TW";
+
+function tr(zh, en) {
+  return currentLanguage === "en" ? en : zh;
+}
 
 function showMessage(text) {
   msgEl.textContent = text;
@@ -43,6 +53,7 @@ function addRecipientCard(recipient = {}) {
   node.querySelector(".r-dateInterval").value = recipient.dateInterval ?? "1";
   node.querySelector(".remove").addEventListener("click", () => node.remove());
   recipientsEl.appendChild(node);
+  CGUI18N.apply(currentLanguage, node);
 }
 
 function collectRecipients() {
@@ -59,6 +70,8 @@ function collectRecipients() {
 async function loadSettings() {
   const data = await chrome.storage.local.get(Object.keys(DEFAULT_SETTINGS));
   const settings = { ...DEFAULT_SETTINGS, ...data };
+  currentLanguage = CGUI18N.normalizeLanguage(settings.language);
+  document.getElementById("language").value = currentLanguage;
 
   for (const key of [
     "enabled",
@@ -70,6 +83,7 @@ async function loadSettings() {
     "notifyOncePerDay",
     "notifyLoginIssue",
     "showBadge",
+    "updateCheckEnabled",
     "openTabIfMissing"
   ]) {
     document.getElementById(key).checked = Boolean(settings[key]);
@@ -91,6 +105,11 @@ async function loadSettings() {
   } else {
     addRecipientCard({ enabled: true, name: "", status: "0", dateType: "0", dateInterval: "1" });
   }
+
+  document.getElementById("currentVersion").textContent = chrome.runtime.getManifest().version;
+  document.getElementById("updateCheckStatus").textContent = settings.updateCheckStatus || tr("尚未檢查", "Not checked yet");
+  document.getElementById("downloadUpdate").hidden = !settings.updateAvailable;
+  CGUI18N.apply(currentLanguage);
 }
 
 async function saveSettings() {
@@ -103,6 +122,7 @@ async function saveSettings() {
   const recipientDelayMax = Math.max(Number(document.getElementById("recipientDelayMaxSeconds").value || 15), recipientDelayMin);
   const settings = {
     enabled: document.getElementById("enabled").checked,
+    language: document.getElementById("language").value,
     checkOnStartup: document.getElementById("checkOnStartup").checked,
     intervalEnabled: document.getElementById("intervalEnabled").checked,
     intervalMinutes: interval,
@@ -121,13 +141,16 @@ async function saveSettings() {
     notifyOncePerDay: document.getElementById("notifyOncePerDay").checked,
     notifyLoginIssue: document.getElementById("notifyLoginIssue").checked,
     showBadge: document.getElementById("showBadge").checked,
+    updateCheckEnabled: document.getElementById("updateCheckEnabled").checked,
     openTabIfMissing: document.getElementById("openTabIfMissing").checked,
     recipients: collectRecipients()
   };
 
   await chrome.storage.local.set(settings);
   chrome.runtime.sendMessage({ type: "CGU_SETTINGS_UPDATED" });
-  showMessage("設定已儲存");
+  currentLanguage = CGUI18N.normalizeLanguage(settings.language);
+  CGUI18N.apply(currentLanguage);
+  showMessage(tr("設定已儲存", "Settings saved"));
 }
 
 document.getElementById("addRecipient").addEventListener("click", () => addRecipientCard());
@@ -150,30 +173,53 @@ document.getElementById("openTutorial").addEventListener("click", () => {
   chrome.tabs.create({ url: chrome.runtime.getURL("使用教學.html") });
 });
 
+document.getElementById("language").addEventListener("change", async event => {
+  currentLanguage = CGUI18N.normalizeLanguage(event.target.value);
+  await chrome.storage.local.set({ language: currentLanguage });
+  CGUI18N.apply(currentLanguage);
+  chrome.runtime.sendMessage({ type: "CGU_SETTINGS_UPDATED" });
+});
+
+document.getElementById("checkUpdate").addEventListener("click", () => {
+  showMessage(tr("正在檢查更新…", "Checking for updates…"));
+  chrome.runtime.sendMessage({ type: "CGU_CHECK_UPDATE" }, res => {
+    showMessage(res?.message || tr("檢查完成", "Update check completed"));
+    loadSettings();
+  });
+});
+
+document.getElementById("downloadUpdate").addEventListener("click", () => {
+  chrome.runtime.sendMessage({ type: "CGU_OPEN_UPDATE_DOWNLOAD" });
+});
+
+document.getElementById("openUpgradeGuide").addEventListener("click", () => {
+  chrome.runtime.sendMessage({ type: "CGU_OPEN_UPGRADE_GUIDE" });
+});
+
 document.getElementById("clearSeen").addEventListener("click", async () => {
-  if (!confirm("確定清除已看過郵件紀錄？清除後，既有郵件可能會再次被視為新資料。")) return;
+  if (!confirm(tr("確定清除已看過郵件紀錄？清除後，既有郵件可能會再次被視為新資料。", "Clear seen-mail records? Existing mail may be treated as new again."))) return;
   await chrome.storage.local.set({ seenKeys: [], lastCountsByRecipient: {}, lastRecipientDetails: {}, lastNotifyDateByRecipient: {} });
   chrome.runtime.sendMessage({ type: "CGU_SETTINGS_UPDATED" });
-  showMessage("已清除已看過郵件紀錄");
+  showMessage(tr("已清除已看過郵件紀錄", "Seen-mail records cleared"));
 });
 
 document.getElementById("clearLogs").addEventListener("click", async () => {
-  if (!confirm("確定清除查詢紀錄？")) return;
+  if (!confirm(tr("確定清除查詢紀錄？", "Clear all query history?"))) return;
   await chrome.storage.local.set({ checkLogs: [] });
-  showMessage("已清除查詢紀錄");
+  showMessage(tr("已清除查詢紀錄", "Query history cleared"));
 });
 
 document.getElementById("resetDailyNotify").addEventListener("click", async () => {
   await chrome.storage.local.set({ lastNotifyDateByRecipient: {} });
-  showMessage("已重置今日提醒紀錄");
+  showMessage(tr("已重置今日提醒紀錄", "Today's notification limit was reset"));
 });
 
 document.getElementById("testNotification").addEventListener("click", async () => {
   await chrome.notifications.create({
     type: "basic",
     iconUrl: "icons/icon128.png",
-    title: "長庚大學自動查詢郵件",
-    message: "這是一則測試通知。"
+    title: tr("長庚大學自動查詢郵件", "CGU Postal Mail Checker"),
+    message: tr("這是一則測試通知。", "This is a test notification.")
   });
 });
 

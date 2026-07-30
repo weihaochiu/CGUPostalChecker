@@ -140,6 +140,7 @@ button.ghost:hover { background: #dceaff; }
 
 .badge.on { background: #d1e7dd; color: #0f5132; }
 .badge.off { background: #f8d7da; color: #842029; }
+.badge.error { background: #dc3545; color: #fff; }
 
 .small {
   font-size: 12px;
@@ -242,6 +243,16 @@ hr {
   background: #fff9e6;
 }
 
+.popup-recipient-result.has-error {
+  border-color: #f1aeb5;
+  background: #fff5f5;
+}
+
+.popup-recipient-result.has-error .popup-recipient-count,
+.error-text {
+  color: #b02a37;
+}
+
 .popup-recipient-main {
   display: flex;
   align-items: center;
@@ -304,5 +315,33 @@ hr {
   padding: 12px;
   color: var(--muted);
   text-align: center;
+  font-size: 12px;
+}
+
+.language-card {
+  display: grid;
+  grid-template-columns: minmax(100px, 180px) minmax(180px, 260px);
+  align-items: center;
+  gap: 12px;
+}
+
+.language-card label {
+  margin: 0;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.update-banner {
+  border: 1px solid #badbcc;
+  background: #d1e7dd;
+  color: #0f5132;
+  border-radius: 9px;
+  padding: 10px;
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+
+.button-row.compact button {
+  padding: 6px 9px;
   font-size: 12px;
 }

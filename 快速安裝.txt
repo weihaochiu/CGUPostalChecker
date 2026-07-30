@@ -1,24 +1,17 @@
-長庚大學自動查詢郵件 - 快速手動安裝
+長庚大學自動查詢郵件 v1.1.0｜快速安裝
 
-1. 將 CGUPostalChecker.zip 解壓縮到：
-   C:\Program Files\Google\ChromeExtensions\CGUPostalChecker
+1. 解壓縮 ZIP 到固定資料夾。
+2. 開啟 chrome://extensions/ 並啟用「開發人員模式」。
+3. 按「載入未封裝項目」，選擇直接包含 manifest.json 的資料夾。
+4. 登入 https://www4.is.cgu.edu.tw/postal/studentletter.aspx
+5. 開啟外掛設定，選擇語言、新增收件人並儲存。
+6. 按「立即查詢一次」，確認沒有紅色 !，再開始監控。
 
-2. Chrome 開啟：
-   chrome://extensions/
+CGU Postal Mail Checker v1.1.0 | Quick installation
 
-3. 開啟右上角「開發人員模式」。
-
-4. 按「載入未封裝項目」，選擇：
-   C:\Program Files\Google\ChromeExtensions\CGUPostalChecker
-
-5. 開啟並登入：
-   https://www4.is.cgu.edu.tw/postal/studentletter.aspx
-
-6. 點外掛圖示 → 設定 → 新增收件人 → 儲存設定。
-   範例姓名可用：王小明
-
-7. 按「立即查詢一次」測試。
-
-8. 沒問題後按「開始監控」。
-
-完整說明請看：使用教學.md 或 使用教學.html
+1. Extract the ZIP to a permanent folder.
+2. Open chrome://extensions/ and enable Developer mode.
+3. Select Load unpacked and choose the folder containing manifest.json.
+4. Sign in at https://www4.is.cgu.edu.tw/postal/studentletter.aspx
+5. Open Settings, choose a language, add recipients, and save.
+6. Select Check now. Confirm that no red ! appears, then start monitoring.

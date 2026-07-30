@@ -1,13 +1,23 @@
+importScripts("i18n.js");
+
 const POSTAL_URL = "https://www4.is.cgu.edu.tw/postal/studentletter.aspx";
 const POSTAL_URL_PATTERN = "https://www4.is.cgu.edu.tw/postal/*";
 const AUTO_CHECK_ALARM = "cgu_postal_auto_check";
 const STARTUP_DELAY_ALARM = "cgu_postal_startup_delayed_check";
+const UPDATE_CHECK_ALARM = "cgu_postal_update_check";
+const UPDATE_MANIFEST_URL = "https://raw.githubusercontent.com/weihaochiu/CGUPostalChecker/main/manifest.json";
+const UPDATE_DOWNLOAD_URL = "https://github.com/weihaochiu/CGUPostalChecker/archive/refs/heads/main.zip";
+const REPOSITORY_URL = "https://github.com/weihaochiu/CGUPostalChecker";
+const UPDATE_NOTIFICATION_ID = "cgu_postal_update_available";
+const CONTENT_READY_ATTEMPTS = 5;
+const RECIPIENT_QUERY_ATTEMPTS = 3;
 const MAX_LOGS = 500;
 const MAX_SEEN_KEYS = 3000;
 const RUN_TIMEOUT_MS = 3 * 60 * 1000;
 
 const DEFAULT_SETTINGS = {
   enabled: false,
+  language: "zh-TW",
   checkOnStartup: true,
   intervalEnabled: true,
   intervalMinutes: 360,
@@ -27,6 +37,14 @@ const DEFAULT_SETTINGS = {
   notifyLoginIssue: true,
   showBadge: true,
   openTabIfMissing: true,
+  updateCheckEnabled: true,
+  updateCheckIntervalMinutes: 1440,
+  latestVersion: "",
+  updateAvailable: false,
+  updateCheckStatus: "尚未檢查",
+  lastUpdateCheckAt: 0,
+  lastUpdateNotifiedVersion: "",
+  latestDownloadUrl: UPDATE_DOWNLOAD_URL,
   dateType: "0",
   dateInterval: "1",
   defaultStatus: "0",
@@ -41,11 +59,33 @@ const DEFAULT_SETTINGS = {
   lastManualCheckAt: 0,
   lastAutoCheckAt: 0,
   nextAllowedCheckAt: 0,
+  lastRunStatus: "never",
+  lastRunErrors: [],
   activeRun: null
 };
 
 function nowIso() {
   return new Date().toISOString();
+}
+
+function textFor(settings, key, replacements = {}) {
+  return CGUI18N.t(settings?.language || "zh-TW", key, replacements);
+}
+
+function queryErrorText(settings, response = {}) {
+  const english = settings?.language === "en";
+  const map = {
+    QUERY_FIELDS_NOT_FOUND: english
+      ? "Query fields were not found. The CGU session may have expired or this is not the postal query page."
+      : "找不到查詢欄位，可能尚未登入、登入已失效，或頁面不是郵件查詢頁。",
+    TAB_WAIT_TIMEOUT: english
+      ? "Timed out while waiting for the postal query page."
+      : "等待郵件查詢頁載入逾時。",
+    CONTENT_SCRIPT_UNAVAILABLE: english
+      ? "The extension could not connect to the postal query page."
+      : "外掛無法連線到郵件查詢頁面。"
+  };
+  return map[response.errorCode] || response.message || (english ? "Unknown query error." : "未知查詢錯誤。");
 }
 
 function localDateKey(date = new Date()) {
@@ -106,6 +146,26 @@ function statusLabel(status) {
   })[normalized] || "全部";
 }
 
+function versionParts(version) {
+  return String(version || "")
+    .trim()
+    .replace(/^v/i, "")
+    .split(/[.-]/)
+    .map(part => Number.parseInt(part, 10))
+    .map(part => Number.isFinite(part) ? part : 0);
+}
+
+function compareVersions(a, b) {
+  const left = versionParts(a);
+  const right = versionParts(b);
+  const length = Math.max(left.length, right.length);
+  for (let i = 0; i < length; i += 1) {
+    const diff = (left[i] || 0) - (right[i] || 0);
+    if (diff !== 0) return diff > 0 ? 1 : -1;
+  }
+  return 0;
+}
+
 function formatDateTimeForUi(timestamp) {
   const ts = Number(timestamp || 0);
   if (!ts) return "尚未排定";
@@ -117,9 +177,21 @@ function formatDateTimeForUi(timestamp) {
 }
 
 function buildActionTitle(settings) {
-  const baseTitle = "長庚大學自動查詢郵件";
+  const baseTitle = textFor(settings, "appName");
+  const runErrors = Array.isArray(settings.lastRunErrors) ? settings.lastRunErrors : [];
+  if (runErrors.length) {
+    const names = runErrors.map(item => item.recipient || "未知收件人").join("、");
+    return settings.language === "en"
+      ? `${baseTitle} | Query error: ${names}`
+      : `${baseTitle}｜查詢有錯誤：${names}`;
+  }
+
   const recipients = (settings.recipients || []).filter(r => r && r.enabled && r.name);
-  if (!recipients.length) return `${baseTitle}｜尚未設定啟用中的收件人`;
+  if (!recipients.length) {
+    return settings.language === "en"
+      ? `${baseTitle} | No enabled recipients`
+      : `${baseTitle}｜尚未設定啟用中的收件人`;
+  }
 
   const counts = settings.lastCountsByRecipient || {};
   const detail = settings.lastRecipientDetails || {};
@@ -129,11 +201,15 @@ function buildActionTitle(settings) {
     const saved = detail[queryKey] || {};
     const count = Number(counts[queryKey] ?? saved.count ?? 0);
     const statusValue = normalizeSettingValue(recipient.status, saved.status ?? settings.defaultStatus ?? "0");
-    const label = statusLabel(statusValue);
-    return `${recipient.name} ${label} ${count}件`;
+    const label = settings.language === "en"
+      ? ({ "": "All", "0": "Uncollected", "1": "Collected", "2": "Returned" })[statusValue] || "All"
+      : statusLabel(statusValue);
+    return settings.language === "en"
+      ? `${recipient.name} ${label}: ${count}`
+      : `${recipient.name} ${label} ${count}件`;
   });
 
-  return [baseTitle, ...lines].join("｜");
+  return [baseTitle, ...lines].join(settings.language === "en" ? " | " : "｜");
 }
 
 function signatureForRow(recipient, row) {
@@ -173,6 +249,14 @@ async function appendLog(entry) {
 async function setBadgeFromCounts(settings) {
   const counts = settings.lastCountsByRecipient || {};
   const recipients = (settings.recipients || []).filter(r => r && r.enabled && r.name);
+  const runErrors = Array.isArray(settings.lastRunErrors) ? settings.lastRunErrors : [];
+
+  if (runErrors.length) {
+    await chrome.action.setBadgeText({ text: "!" });
+    await chrome.action.setBadgeBackgroundColor({ color: "#dc3545" });
+    await chrome.action.setTitle({ title: buildActionTitle(settings) });
+    return;
+  }
 
   let total = 0;
   if (recipients.length) {
@@ -244,6 +328,82 @@ async function scheduleRetryAutoAlarm(minutes = 60) {
   await chrome.alarms.clear(AUTO_CHECK_ALARM);
   await chrome.alarms.create(AUTO_CHECK_ALARM, { when });
   await appendLog({ type: "auto_retry_scheduled", message: `自動查詢暫緩，約 ${minutes} 分鐘後再檢查` });
+}
+
+async function scheduleUpdateAlarm(settings = null) {
+  const cfg = settings || await getSettings();
+  await chrome.alarms.clear(UPDATE_CHECK_ALARM);
+  if (!cfg.updateCheckEnabled) return;
+  const interval = Math.max(360, Number(cfg.updateCheckIntervalMinutes || 1440));
+  await chrome.alarms.create(UPDATE_CHECK_ALARM, {
+    delayInMinutes: Math.min(60, interval),
+    periodInMinutes: interval
+  });
+}
+
+async function checkForUpdates(options = {}) {
+  const settings = await getSettings();
+  const currentVersion = chrome.runtime.getManifest().version;
+  if (!settings.updateCheckEnabled && !options.manual) {
+    return { ok: false, message: settings.language === "en" ? "Automatic update checks are disabled." : "自動檢查更新已關閉。" };
+  }
+
+  try {
+    const response = await fetch(`${UPDATE_MANIFEST_URL}?t=${Date.now()}`, { cache: "no-store" });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const remoteManifest = await response.json();
+    const latestVersion = String(remoteManifest.version || "").trim();
+    if (!/^\d+(?:\.\d+){1,3}$/.test(latestVersion)) {
+      throw new Error("Invalid remote version");
+    }
+
+    const updateAvailable = compareVersions(latestVersion, currentVersion) > 0;
+    const updateCheckStatus = updateAvailable
+      ? textFor(settings, "updateAvailable", { version: latestVersion })
+      : textFor(settings, "latestVersion");
+
+    await chrome.storage.local.set({
+      latestVersion,
+      updateAvailable,
+      updateCheckStatus,
+      lastUpdateCheckAt: Date.now(),
+      latestDownloadUrl: UPDATE_DOWNLOAD_URL
+    });
+
+    if (updateAvailable && settings.lastUpdateNotifiedVersion !== latestVersion) {
+      await chrome.notifications.create(UPDATE_NOTIFICATION_ID, {
+        type: "basic",
+        iconUrl: "icons/icon128.png",
+        title: textFor(settings, "appName"),
+        message: textFor(settings, "updateAvailable", { version: latestVersion }),
+        buttons: [
+          { title: textFor(settings, "downloadLatest") },
+          { title: textFor(settings, "upgradeGuide") }
+        ],
+        requireInteraction: true
+      });
+      await chrome.storage.local.set({ lastUpdateNotifiedVersion: latestVersion });
+    }
+
+    return {
+      ok: true,
+      currentVersion,
+      latestVersion,
+      updateAvailable,
+      downloadUrl: UPDATE_DOWNLOAD_URL,
+      message: updateCheckStatus
+    };
+  } catch (err) {
+    const details = String(err && err.message ? err.message : err);
+    const message = settings.language === "en"
+      ? `Unable to check for updates: ${details}`
+      : `無法檢查更新：${details}`;
+    await chrome.storage.local.set({
+      updateCheckStatus: message,
+      lastUpdateCheckAt: Date.now()
+    });
+    return { ok: false, currentVersion, message };
+  }
 }
 
 async function clearRunIfStale() {
@@ -335,7 +495,10 @@ async function findOrOpenPostalTab(settings) {
 
 async function waitForTabComplete(tabId, timeoutMs = 15000) {
   const tab = await chrome.tabs.get(tabId).catch(() => null);
-  if (tab && tab.status === "complete") return true;
+  if (tab && tab.status === "complete") {
+    await sleep(300);
+    return true;
+  }
 
   return await new Promise((resolve) => {
     let done = false;
@@ -353,7 +516,7 @@ async function waitForTabComplete(tabId, timeoutMs = 15000) {
         done = true;
         clearTimeout(timer);
         chrome.tabs.onUpdated.removeListener(listener);
-        resolve(true);
+        setTimeout(() => resolve(true), 300);
       }
     }
 
@@ -364,8 +527,14 @@ async function waitForTabComplete(tabId, timeoutMs = 15000) {
 async function ensureContentScript(tabId) {
   try {
     await chrome.scripting.executeScript({ target: { tabId }, files: ["content.js"] });
+    return { ok: true };
   } catch (err) {
     console.warn("executeScript warning", err);
+    return {
+      ok: false,
+      errorCode: "CONTENT_SCRIPT_UNAVAILABLE",
+      message: `無法載入查詢程式：${String(err && err.message ? err.message : err)}`
+    };
   }
 }
 
@@ -374,8 +543,41 @@ async function sendToTab(tabId, message) {
     return await chrome.tabs.sendMessage(tabId, message);
   } catch (err) {
     console.warn("sendToTab failed", err);
-    return null;
+    return {
+      ok: false,
+      transportError: true,
+      errorCode: "CONTENT_SCRIPT_UNAVAILABLE",
+      message: `無法連線到查詢頁面：${String(err && err.message ? err.message : err)}`
+    };
   }
+}
+
+async function waitForContentScriptReady(tabId) {
+  let lastError = "查詢頁面的程式尚未準備完成";
+  let lastErrorCode = "CONTENT_SCRIPT_UNAVAILABLE";
+  for (let attempt = 1; attempt <= CONTENT_READY_ATTEMPTS; attempt += 1) {
+    const tabReady = await waitForTabComplete(tabId, 15000);
+    if (!tabReady) {
+      lastError = "等待查詢頁面載入逾時";
+      lastErrorCode = "TAB_WAIT_TIMEOUT";
+    }
+
+    const injected = await ensureContentScript(tabId);
+    if (!injected.ok) {
+      lastError = injected.message;
+      lastErrorCode = injected.errorCode || "CONTENT_SCRIPT_UNAVAILABLE";
+    }
+
+    const ping = await sendToTab(tabId, { type: "CGU_PING" });
+    if (ping && ping.ok) return { ok: true, attempt };
+
+    if (ping?.message) {
+      lastError = ping.message;
+      lastErrorCode = ping.errorCode || lastErrorCode;
+    }
+    await sleep(400 * attempt);
+  }
+  return { ok: false, errorCode: lastErrorCode, message: lastError };
 }
 
 async function notify(title, message) {
@@ -433,7 +635,8 @@ async function startRun(reason = "manual") {
     reason,
     startedAt: nowIso(),
     startedAtMs: Date.now(),
-    status: "preparing"
+    status: "preparing",
+    failures: []
   };
   await chrome.storage.local.set({ activeRun });
 
@@ -451,8 +654,15 @@ async function startRun(reason = "manual") {
     activeRun.status = "running";
     await chrome.storage.local.set({ activeRun });
 
-    await waitForTabComplete(tab.id);
-    await ensureContentScript(tab.id);
+    const contentReady = await waitForContentScriptReady(tab.id);
+    if (!contentReady.ok) {
+      const message = queryErrorText(settings, contentReady);
+      activeRun.failures = recipients.map(recipient => ({ recipient: recipient.name, message }));
+      await chrome.storage.local.set({ activeRun });
+      await appendLog({ type: "error", reason, message });
+      await finishRun(activeRun, "error");
+      return { ok: false, message };
+    }
 
     await appendLog({ type: "run_started", reason, message: `開始查詢 ${recipients.length} 位收件人` });
     await runRecipient(tab.id, activeRun, 0);
@@ -478,28 +688,84 @@ async function runRecipient(tabId, activeRun, index) {
   activeRun.currentRecipientStartedAtMs = Date.now();
   await chrome.storage.local.set({ activeRun });
 
-  const response = await sendToTab(tabId, {
-    type: "CGU_RUN_RECIPIENT",
-    runId: activeRun.runId,
-    tabId,
-    index,
-    recipient,
-    defaults: {
-      dateType: activeRun.dateType,
-      dateInterval: activeRun.dateInterval,
-      defaultStatus: activeRun.defaultStatus
+  let response = null;
+  for (let attempt = 1; attempt <= RECIPIENT_QUERY_ATTEMPTS; attempt += 1) {
+    const ready = await waitForContentScriptReady(tabId);
+    if (!ready.ok) {
+      response = { ok: false, errorCode: ready.errorCode, message: ready.message };
+    } else {
+      response = await sendToTab(tabId, {
+        type: "CGU_RUN_RECIPIENT",
+        runId: activeRun.runId,
+        tabId,
+        index,
+        recipient,
+        defaults: {
+          dateType: activeRun.dateType,
+          dateInterval: activeRun.dateInterval,
+          defaultStatus: activeRun.defaultStatus
+        }
+      });
     }
-  });
+
+    if (response && response.ok) return;
+
+    await appendLog({
+      type: "recipient_retry",
+      recipient: recipient.name,
+      attempt,
+      message: `第 ${attempt} 次操作失敗${attempt < RECIPIENT_QUERY_ATTEMPTS ? "，準備重試" : ""}：${response?.message || "未知錯誤"}`
+    });
+    if (attempt < RECIPIENT_QUERY_ATTEMPTS) await sleep(700 * attempt);
+  }
 
   if (!response || !response.ok) {
+    const currentSettings = await getSettings();
+    const errorMessage = queryErrorText(currentSettings, response || {});
+    await recordRecipientFailure(activeRun.runId, recipient, errorMessage);
     await appendLog({
       type: "error",
       recipient: recipient.name,
-      message: response?.message || "無法操作查詢頁面，可能尚未登入或分頁未準備好"
+      message: errorMessage
     });
-    await handleLoginOrTabIssue(recipient, response?.message || "無法操作查詢頁面");
+    await handleLoginOrTabIssue(recipient, errorMessage);
     await continueNext(activeRun.runId, index);
   }
+}
+
+async function recordRecipientFailure(runId, recipient, message) {
+  const settings = await getSettings();
+  const activeRun = settings.activeRun;
+  if (!activeRun || activeRun.runId !== runId) return;
+
+  const failures = Array.isArray(activeRun.failures) ? activeRun.failures : [];
+  failures.push({ recipient: recipient.name, message, time: nowIso() });
+  activeRun.failures = failures;
+
+  const queryKey = recipientQueryKey(recipient, settings);
+  const previous = (settings.lastRecipientDetails || {})[queryKey] || {};
+  const lastRecipientDetails = {
+    ...(settings.lastRecipientDetails || {}),
+    [queryKey]: {
+      ...previous,
+      name: recipient.name,
+      receiverId: recipient.receiverId || "",
+      status: normalizeSettingValue(recipient.status, settings.defaultStatus ?? "0"),
+      dateType: normalizeSettingValue(recipient.dateType, settings.dateType ?? "0"),
+      dateInterval: normalizeSettingValue(recipient.dateInterval, settings.dateInterval ?? "1"),
+      queryStatus: "error",
+      errorMessage: message,
+      failedAt: nowIso()
+    }
+  };
+
+  await chrome.storage.local.set({
+    activeRun,
+    lastRecipientDetails,
+    lastRunStatus: "error",
+    lastRunErrors: failures
+  });
+  await setBadgeFromCounts({ ...settings, activeRun, lastRecipientDetails, lastRunErrors: failures });
 }
 
 async function handleLoginOrTabIssue(recipient, message) {
@@ -510,23 +776,46 @@ async function handleLoginOrTabIssue(recipient, message) {
     const data = await chrome.storage.local.get([key]);
     if (!data[key]) {
       await chrome.storage.local.set({ [key]: true });
-      await notify("長庚大學自動查詢郵件", `需要重新登入或開啟查詢頁面：${message}`);
+      const notice = settings.language === "en"
+        ? `Sign in again or open the postal query page: ${message}`
+        : `需要重新登入或開啟查詢頁面：${message}`;
+      await notify(textFor(settings, "appName"), notice);
     }
   }
 }
 
 async function finishRun(activeRun, status = "done") {
   const settings = await getSettings();
+  const storedRun = settings.activeRun && settings.activeRun.runId === activeRun.runId
+    ? settings.activeRun
+    : activeRun;
+  const failures = Array.isArray(storedRun.failures) ? storedRun.failures : [];
+  const finalStatus = failures.length ? "error" : status;
+  const resultText = failures.length
+    ? settings.language === "en"
+      ? `Query error: ${failures.length} recipient(s) failed`
+      : `查詢有錯誤：${failures.length} 位收件人未成功`
+    : finalStatus === "done"
+      ? settings.language === "en" ? "Query completed" : "查詢完成"
+      : finalStatus;
+
   await chrome.storage.local.set({
     activeRun: null,
     pendingParse: null,
     lastCheckTime: nowIso(),
-    lastResultText: status === "done" ? "查詢完成" : status
+    lastResultText: resultText,
+    lastRunStatus: finalStatus,
+    lastRunErrors: failures
   });
   const updated = await getSettings();
   await setBadgeFromCounts(updated);
   await scheduleAutoAlarm(updated);
-  await appendLog({ type: "run_finished", message: "本輪查詢完成" });
+  await appendLog({
+    type: failures.length ? "run_finished_with_errors" : "run_finished",
+    errorCount: failures.length,
+    errors: failures,
+    message: resultText
+  });
 }
 
 async function continueNext(runId, currentIndex) {
@@ -589,7 +878,10 @@ async function processResult(message) {
     dateType: normalizeSettingValue(recipient.dateType, settings.dateType ?? "0"),
     dateInterval: normalizeSettingValue(recipient.dateInterval, settings.dateInterval ?? "1"),
     count: rowList.length,
-    checkedAt: nowIso()
+    checkedAt: nowIso(),
+    queryStatus: "success",
+    errorMessage: "",
+    failedAt: ""
   };
 
   await chrome.storage.local.set({
@@ -597,7 +889,9 @@ async function processResult(message) {
     lastCountsByRecipient,
     lastRecipientDetails,
     lastCheckTime: nowIso(),
-    lastResultText: `${recipient.name}：${rowList.length} 筆，新增 ${newRows.length} 筆`
+    lastResultText: settings.language === "en"
+      ? `${recipient.name}: ${rowList.length} item(s), ${newRows.length} new`
+      : `${recipient.name}：${rowList.length} 筆，新增 ${newRows.length} 筆`
   });
 
   await appendLog({
@@ -642,19 +936,24 @@ async function maybeNotify(settings, recipient, rows, newRows) {
   lastNotifyDateByRecipient[key] = today;
   await chrome.storage.local.set({ lastNotifyDateByRecipient });
 
-  const title = "長庚大學自動查詢郵件";
   const previewRows = (newRows.length ? newRows : rows).slice(0, 3);
   const preview = previewRows.map(row => Object.values(row).join(" / ")).join("\n");
-  const newPart = newRows.length ? `，其中新增 ${newRows.length} 筆` : "";
-  const message = `${recipient.name} 目前有 ${rows.length} 筆郵件${newPart}\n${preview}`.slice(0, 900);
-  await notify(title, message);
+  const newPart = newRows.length
+    ? settings.language === "en" ? `, including ${newRows.length} new` : `，其中新增 ${newRows.length} 筆`
+    : "";
+  const message = settings.language === "en"
+    ? `${recipient.name} currently has ${rows.length} mail item(s)${newPart}\n${preview}`.slice(0, 900)
+    : `${recipient.name} 目前有 ${rows.length} 筆郵件${newPart}\n${preview}`.slice(0, 900);
+  await notify(textFor(settings, "appName"), message);
 }
 
 chrome.runtime.onInstalled.addListener(async () => {
   await setDefaultsIfNeeded();
   const settings = await getSettings();
   await scheduleAutoAlarm(settings);
+  await scheduleUpdateAlarm(settings);
   await setBadgeFromCounts(settings);
+  await checkForUpdates();
 });
 
 chrome.runtime.onStartup.addListener(async () => {
@@ -662,7 +961,11 @@ chrome.runtime.onStartup.addListener(async () => {
   const settings = await getSettings();
   await setBadgeFromCounts(settings);
   await scheduleAutoAlarm(settings);
+  await scheduleUpdateAlarm(settings);
   await scheduleStartupDelayedCheck(settings);
+  if (settings.updateCheckEnabled && Date.now() - Number(settings.lastUpdateCheckAt || 0) > 24 * 60 * 60 * 1000) {
+    await checkForUpdates();
+  }
 });
 
 chrome.alarms.onAlarm.addListener(async (alarm) => {
@@ -672,6 +975,25 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
   }
   if (alarm.name === STARTUP_DELAY_ALARM) {
     await startRun("startup_delayed");
+    return;
+  }
+  if (alarm.name === UPDATE_CHECK_ALARM) {
+    await checkForUpdates();
+  }
+});
+
+chrome.notifications.onButtonClicked.addListener(async (notificationId, buttonIndex) => {
+  if (notificationId !== UPDATE_NOTIFICATION_ID) return;
+  if (buttonIndex === 0) {
+    await chrome.tabs.create({ url: UPDATE_DOWNLOAD_URL, active: true });
+  } else if (buttonIndex === 1) {
+    await chrome.tabs.create({ url: chrome.runtime.getURL("升級教學.html"), active: true });
+  }
+});
+
+chrome.notifications.onClicked.addListener(async notificationId => {
+  if (notificationId === UPDATE_NOTIFICATION_ID) {
+    await chrome.tabs.create({ url: REPOSITORY_URL, active: true });
   }
 });
 
@@ -689,9 +1011,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       await chrome.storage.local.set({ enabled: false, activeRun: null, pendingParse: null });
       await chrome.alarms.clear(AUTO_CHECK_ALARM);
       await chrome.alarms.clear(STARTUP_DELAY_ALARM);
-      await chrome.action.setBadgeText({ text: "" });
       const stoppedSettings = await getSettings();
-      await chrome.action.setTitle({ title: buildActionTitle(stoppedSettings) });
+      await setBadgeFromCounts(stoppedSettings);
       await appendLog({ type: "monitor_stopped", message: "已停止監控" });
       sendResponse({ ok: true, message: "已停止監控" });
       return;
@@ -720,6 +1041,23 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       return;
     }
 
+    if (message.type === "CGU_OPEN_UPGRADE_GUIDE") {
+      await chrome.tabs.create({ url: chrome.runtime.getURL("升級教學.html"), active: true });
+      sendResponse({ ok: true });
+      return;
+    }
+
+    if (message.type === "CGU_OPEN_UPDATE_DOWNLOAD") {
+      await chrome.tabs.create({ url: UPDATE_DOWNLOAD_URL, active: true });
+      sendResponse({ ok: true });
+      return;
+    }
+
+    if (message.type === "CGU_CHECK_UPDATE") {
+      sendResponse(await checkForUpdates({ manual: true }));
+      return;
+    }
+
     if (message.type === "CGU_SETTINGS_UPDATED") {
       const settings = await getSettings();
       const interval = effectiveAutoIntervalMinutes(settings);
@@ -730,6 +1068,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (Object.keys(patch).length) await chrome.storage.local.set(patch);
       const updated = await getSettings();
       await scheduleAutoAlarm(updated);
+      await scheduleUpdateAlarm(updated);
       await setBadgeFromCounts(updated);
       sendResponse({ ok: true });
       return;
@@ -742,7 +1081,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 
     if (message.type === "CGU_LOGIN_REQUIRED") {
-      await handleLoginOrTabIssue(message.recipient || {}, message.message || "尚未登入");
+      const recipient = message.recipient || {};
+      const currentSettings = await getSettings();
+      const errorMessage = queryErrorText(currentSettings, message);
+      await recordRecipientFailure(message.runId, recipient, errorMessage);
+      await appendLog({ type: "error", recipient: recipient.name || "", message: errorMessage });
+      await handleLoginOrTabIssue(recipient, errorMessage);
       await continueNext(message.runId, message.index || 0);
       sendResponse({ ok: true });
       return;

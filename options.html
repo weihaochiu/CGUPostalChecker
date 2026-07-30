@@ -2,116 +2,135 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="utf-8">
-  <title>長庚大學自動查詢郵件 - 設定</title>
+  <title>CGU Postal Mail Checker - Settings</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <div class="container">
-    <h1>長庚大學自動查詢郵件</h1>
-    <p class="small">查詢網址固定為：https://www4.is.cgu.edu.tw/postal/studentletter.aspx</p>
+    <h1 data-i18n="appName">長庚大學自動查詢郵件</h1>
+    <div class="card language-card">
+      <label for="language" data-i18n="language">介面語言</label>
+      <select id="language">
+        <option value="zh-TW" data-i18n="traditionalChinese">繁體中文</option>
+        <option value="en" data-i18n="english">English</option>
+      </select>
+    </div>
+    <p class="small" data-i18n="postalUrlNote">查詢網址固定為：https://www4.is.cgu.edu.tw/postal/studentletter.aspx</p>
 
-    <div class="notice">
+    <div class="notice" data-i18n="credentialNotice">
       本外掛不儲存學校帳號與密碼。請先在 Chrome 中登入長庚大學郵件收發管理系統，外掛會使用目前登入狀態查詢。
     </div>
 
     <div class="card">
-      <h2>收件人清單</h2>
+      <h2 data-i18n="recipientsTitle">收件人清單</h2>
       <div id="recipients"></div>
       <div class="button-row">
-        <button id="addRecipient" class="ghost">新增收件人</button>
+        <button id="addRecipient" class="ghost" data-i18n="addRecipient">新增收件人</button>
       </div>
-      <p class="small">收件人 ID 可留空。若自動選取收件人失敗，再填入網頁 autocomplete 對應的 ID。</p>
+      <p class="small" data-i18n="recipientIdHint">收件人 ID 可留空。若自動選取收件人失敗，再填入網頁 autocomplete 對應的 ID。</p>
     </div>
 
     <div class="card">
-      <h2>查詢排程</h2>
-      <label class="checkbox-label"><input type="checkbox" id="enabled"> 啟用自動監控</label>
-      <label class="checkbox-label"><input type="checkbox" id="checkOnStartup"> 開啟 Chrome 時自動檢查一次</label>
-      <label class="checkbox-label"><input type="checkbox" id="intervalEnabled"> 固定間隔自動檢查</label>
+      <h2 data-i18n="scheduleTitle">查詢排程</h2>
+      <label class="checkbox-label"><input type="checkbox" id="enabled"> <span data-i18n="autoMonitor">啟用自動監控</span></label>
+      <label class="checkbox-label"><input type="checkbox" id="checkOnStartup"> <span data-i18n="checkOnStartup">開啟 Chrome 時自動檢查一次</span></label>
+      <label class="checkbox-label"><input type="checkbox" id="intervalEnabled"> <span data-i18n="intervalCheck">固定間隔自動檢查</span></label>
 
       <div class="row">
         <div class="col-3">
-          <label for="intervalMinutes">查詢間隔，分鐘，最低 120</label>
+          <label for="intervalMinutes" data-i18n="intervalMinutes">查詢間隔，分鐘，最低 120</label>
           <input type="number" id="intervalMinutes" min="120" step="30">
         </div>
         <div class="col-3">
-          <label for="activeStartTime">允許查詢開始</label>
+          <label for="activeStartTime" data-i18n="allowedStart">允許查詢開始</label>
           <input type="time" id="activeStartTime">
         </div>
         <div class="col-3">
-          <label for="activeEndTime">允許查詢結束</label>
+          <label for="activeEndTime" data-i18n="allowedEnd">允許查詢結束</label>
           <input type="time" id="activeEndTime">
         </div>
         <div class="col-3">
           <label>&nbsp;</label>
-          <label class="checkbox-label"><input type="checkbox" id="onlyWithinHours"> 只在指定時段查詢</label>
+          <label class="checkbox-label"><input type="checkbox" id="onlyWithinHours"> <span data-i18n="onlyHours">只在指定時段查詢</span></label>
         </div>
       </div>
 
-      <label class="checkbox-label"><input type="checkbox" id="skipWeekends"> 週末不查詢</label>
-      <label class="checkbox-label"><input type="checkbox" id="openTabIfMissing"> 沒有查詢頁時，自動開啟背景分頁</label>
+      <label class="checkbox-label"><input type="checkbox" id="skipWeekends"> <span data-i18n="skipWeekends">週末不查詢</span></label>
+      <label class="checkbox-label"><input type="checkbox" id="openTabIfMissing"> <span data-i18n="openTab">沒有查詢頁時，自動開啟背景分頁</span></label>
 
-      <div class="notice">
+      <div class="notice" data-i18n="serverLoadNotice">
         為避免造成伺服器負擔，自動查詢最低間隔固定為 120 分鐘，建議 360 分鐘。Chrome 開啟時不會立刻查詢，會先確認是否已到「下次允許查詢時間」，再隨機延遲後才查詢。
       </div>
 
       <div class="row">
         <div class="col-3">
-          <label for="startupDelayMinMinutes">Chrome 啟動延遲下限，分鐘</label>
+          <label for="startupDelayMinMinutes" data-i18n="startupDelayMin">Chrome 啟動延遲下限，分鐘</label>
           <input type="number" id="startupDelayMinMinutes" min="1" step="1">
         </div>
         <div class="col-3">
-          <label for="startupDelayMaxMinutes">Chrome 啟動延遲上限，分鐘</label>
+          <label for="startupDelayMaxMinutes" data-i18n="startupDelayMax">Chrome 啟動延遲上限，分鐘</label>
           <input type="number" id="startupDelayMaxMinutes" min="1" step="1">
         </div>
         <div class="col-3">
-          <label for="scheduleJitterMaxMinutes">排程隨機延遲上限，分鐘</label>
+          <label for="scheduleJitterMaxMinutes" data-i18n="scheduleJitter">排程隨機延遲上限，分鐘</label>
           <input type="number" id="scheduleJitterMaxMinutes" min="0" step="5">
         </div>
         <div class="col-3">
-          <label for="manualCooldownMinutes">手動查詢冷卻，分鐘</label>
+          <label for="manualCooldownMinutes" data-i18n="manualCooldown">手動查詢冷卻，分鐘</label>
           <input type="number" id="manualCooldownMinutes" min="1" step="1">
         </div>
       </div>
 
       <div class="row">
         <div class="col-3">
-          <label for="recipientDelayMinSeconds">多人查詢間隔下限，秒</label>
+          <label for="recipientDelayMinSeconds" data-i18n="recipientDelayMin">多人查詢間隔下限，秒</label>
           <input type="number" id="recipientDelayMinSeconds" min="1" step="1">
         </div>
         <div class="col-3">
-          <label for="recipientDelayMaxSeconds">多人查詢間隔上限，秒</label>
+          <label for="recipientDelayMaxSeconds" data-i18n="recipientDelayMax">多人查詢間隔上限，秒</label>
           <input type="number" id="recipientDelayMaxSeconds" min="1" step="1">
         </div>
         <div class="col-6">
-          <label>排程說明</label>
-          <p class="small">預設：每 6 小時查詢一次；Chrome 啟動後隨機 5–30 分鐘；每次查詢後下一次自動查詢再加 0–30 分鐘隨機延遲；多人查詢每人間隔 5–15 秒。</p>
+          <label data-i18n="scheduleExplanation">排程說明</label>
+          <p class="small" data-i18n="scheduleDetails">預設：每 6 小時查詢一次；Chrome 啟動後隨機 5–30 分鐘；每次查詢後下一次自動查詢再加 0–30 分鐘隨機延遲；多人查詢每人間隔 5–15 秒。</p>
         </div>
       </div>
     </div>
 
     <div class="card">
-      <h2>通知設定</h2>
-      <label class="checkbox-label"><input type="checkbox" id="notifyOnlyWhenMailExists"> 只有查到郵件才跳通知；沒有新郵件只寫入背景紀錄</label>
-      <label class="checkbox-label"><input type="checkbox" id="notifyOncePerDay"> 同一天同一收件人只提醒一次</label>
-      <label class="checkbox-label"><input type="checkbox" id="notifyLoginIssue"> 登入失效或找不到查詢頁時提醒</label>
-      <label class="checkbox-label"><input type="checkbox" id="showBadge"> 在外掛圖示顯示目前查到的郵件總數</label>
+      <h2 data-i18n="notificationsTitle">通知設定</h2>
+      <label class="checkbox-label"><input type="checkbox" id="notifyOnlyWhenMailExists"> <span data-i18n="notifyOnlyMail">只有查到郵件才跳通知；沒有新郵件只寫入背景紀錄</span></label>
+      <label class="checkbox-label"><input type="checkbox" id="notifyOncePerDay"> <span data-i18n="notifyDaily">同一天同一收件人只提醒一次</span></label>
+      <label class="checkbox-label"><input type="checkbox" id="notifyLoginIssue"> <span data-i18n="notifyLogin">登入失效或找不到查詢頁時提醒</span></label>
+      <label class="checkbox-label"><input type="checkbox" id="showBadge"> <span data-i18n="showBadge">在外掛圖示顯示目前查到的郵件總數</span></label>
       <div class="button-row">
-        <button id="resetDailyNotify" class="secondary">重置今日提醒紀錄</button>
-        <button id="testNotification" class="secondary">測試通知</button>
+        <button id="resetDailyNotify" class="secondary" data-i18n="resetNotify">重置今日提醒紀錄</button>
+        <button id="testNotification" class="secondary" data-i18n="testNotify">測試通知</button>
       </div>
     </div>
 
     <div class="card">
-      <h2>紀錄與維護</h2>
+      <h2 data-i18n="updateTitle">版本與更新</h2>
+      <label class="checkbox-label"><input type="checkbox" id="updateCheckEnabled"> <span data-i18n="autoUpdate">每天自動檢查 GitHub 最新版本並提示更新</span></label>
+      <p><span data-i18n="installedVersion">已安裝版本</span>：<strong id="currentVersion">-</strong></p>
+      <p id="updateCheckStatus" class="small">-</p>
       <div class="button-row">
-        <button id="save" class="success">儲存設定</button>
-        <button id="checkNow">立即查詢一次</button>
-        <button id="openPostal" class="secondary">開啟郵件查詢頁</button>
-        <button id="openHistory" class="secondary">查看查詢紀錄</button>
-        <button id="openTutorial" class="secondary">開啟使用教學</button>
-        <button id="clearSeen" class="danger">清除已看過郵件紀錄</button>
-        <button id="clearLogs" class="danger">清除查詢紀錄</button>
+        <button id="checkUpdate" data-i18n="checkUpdate">檢查更新</button>
+        <button id="downloadUpdate" class="success" data-i18n="downloadLatest">下載最新版</button>
+        <button id="openUpgradeGuide" class="secondary" data-i18n="upgradeGuide">升級教學</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 data-i18n="maintenanceTitle">紀錄與維護</h2>
+      <div class="button-row">
+        <button id="save" class="success" data-i18n="saveSettings">儲存設定</button>
+        <button id="checkNow" data-i18n="checkNow">立即查詢一次</button>
+        <button id="openPostal" class="secondary" data-i18n="openPostal">開啟郵件查詢頁</button>
+        <button id="openHistory" class="secondary" data-i18n="viewHistory">查看查詢紀錄</button>
+        <button id="openTutorial" class="secondary" data-i18n="userGuide">開啟使用教學</button>
+        <button id="clearSeen" class="danger" data-i18n="clearSeen">清除已看過郵件紀錄</button>
+        <button id="clearLogs" class="danger" data-i18n="clearLogs">清除查詢紀錄</button>
       </div>
       <p id="message" class="small"></p>
     </div>
@@ -121,49 +140,50 @@
     <div class="recipient-card">
       <div class="row">
         <div class="col-2">
-          <label>啟用</label>
-          <label class="checkbox-label"><input type="checkbox" class="r-enabled"> 啟用</label>
+          <label data-i18n="enabled">啟用</label>
+          <label class="checkbox-label"><input type="checkbox" class="r-enabled"> <span data-i18n="enabled">啟用</span></label>
         </div>
         <div class="col-3">
-          <label>收件人姓名 / 單位名稱</label>
-          <input type="text" class="r-name" placeholder="例如：王小明">
+          <label data-i18n="recipientName">收件人姓名 / 單位名稱</label>
+          <input type="text" class="r-name" placeholder="例如：王小明" data-i18n-placeholder="recipientExample">
         </div>
         <div class="col-3">
-          <label>收件人 ID，選填</label>
-          <input type="text" class="r-id" placeholder="可留空">
+          <label data-i18n="recipientId">收件人 ID，選填</label>
+          <input type="text" class="r-id" placeholder="可留空" data-i18n-placeholder="optional">
         </div>
         <div class="col-2">
-          <label>郵件狀態</label>
+          <label data-i18n="mailStatus">郵件狀態</label>
           <select class="r-status">
-            <option value="0">未領取</option>
-            <option value="">全部</option>
-            <option value="1">已領取</option>
-            <option value="2">退件</option>
+            <option value="0" data-i18n="unread">未領取</option>
+            <option value="" data-i18n="all">全部</option>
+            <option value="1" data-i18n="received">已領取</option>
+            <option value="2" data-i18n="returned">退件</option>
           </select>
         </div>
         <div class="col-2">
-          <label>日期區間</label>
+          <label data-i18n="dateRange">日期區間</label>
           <select class="r-dateInterval">
-            <option value="1">1 個月</option>
-            <option value="3">3 個月</option>
-            <option value="6">6 個月</option>
+            <option value="1" data-i18n="oneMonth">1 個月</option>
+            <option value="3" data-i18n="threeMonths">3 個月</option>
+            <option value="6" data-i18n="sixMonths">6 個月</option>
           </select>
         </div>
         <div class="col-3">
-          <label>日期類型</label>
+          <label data-i18n="dateType">日期類型</label>
           <select class="r-dateType">
-            <option value="0">收件日期</option>
-            <option value="1">退件日期</option>
+            <option value="0" data-i18n="receiveDate">收件日期</option>
+            <option value="1" data-i18n="returnDate">退件日期</option>
           </select>
         </div>
         <div class="col-3">
           <label>&nbsp;</label>
-          <button class="remove danger" type="button">刪除此收件人</button>
+          <button class="remove danger" type="button" data-i18n="deleteRecipient">刪除此收件人</button>
         </div>
       </div>
     </div>
   </template>
 
+  <script src="i18n.js"></script>
   <script src="options.js"></script>
 </body>
 </html>
