@@ -15,6 +15,6 @@
   });
 
   chrome.storage.local.get(["language"]).then(data => {
-    setLanguage(data.language || "zh-TW");
+    setLanguage(data.language || CGUI18N.detect());
   });
 })();

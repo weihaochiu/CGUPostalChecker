@@ -1,6 +1,7 @@
 const DEFAULT_SETTINGS = {
   enabled: false,
-  language: "zh-TW",
+  language: CGUI18N.detect(),
+  languageUserSelected: false,
   checkOnStartup: true,
   intervalEnabled: true,
   intervalMinutes: 360,
@@ -23,6 +24,7 @@ const DEFAULT_SETTINGS = {
   latestVersion: "",
   updateAvailable: false,
   updateCheckStatus: "尚未檢查",
+  sourceFolderNote: "",
   openTabIfMissing: true,
   recipients: []
 };
@@ -34,6 +36,16 @@ let currentLanguage = "zh-TW";
 
 function tr(zh, en) {
   return currentLanguage === "en" ? en : zh;
+}
+
+function compareVersions(a, b) {
+  const left = String(a || "").replace(/^v/i, "").split(".").map(Number);
+  const right = String(b || "").replace(/^v/i, "").split(".").map(Number);
+  for (let i = 0; i < Math.max(left.length, right.length); i += 1) {
+    const diff = (left[i] || 0) - (right[i] || 0);
+    if (diff !== 0) return diff > 0 ? 1 : -1;
+  }
+  return 0;
 }
 
 function showMessage(text) {
@@ -70,7 +82,7 @@ function collectRecipients() {
 async function loadSettings() {
   const data = await chrome.storage.local.get(Object.keys(DEFAULT_SETTINGS));
   const settings = { ...DEFAULT_SETTINGS, ...data };
-  currentLanguage = CGUI18N.normalizeLanguage(settings.language);
+  currentLanguage = CGUI18N.normalizeLanguage(settings.language || CGUI18N.detect());
   document.getElementById("language").value = currentLanguage;
 
   for (const key of [
@@ -106,10 +118,19 @@ async function loadSettings() {
     addRecipientCard({ enabled: true, name: "", status: "0", dateType: "0", dateInterval: "1" });
   }
 
-  document.getElementById("currentVersion").textContent = chrome.runtime.getManifest().version;
+  const installedVersion = chrome.runtime.getManifest().version;
+  document.getElementById("currentVersion").textContent = installedVersion;
   document.getElementById("updateCheckStatus").textContent = settings.updateCheckStatus || tr("尚未檢查", "Not checked yet");
-  document.getElementById("downloadUpdate").hidden = !settings.updateAvailable;
+  document.getElementById("sourceFolderNote").value = settings.sourceFolderNote || "";
+  const displayedVersion = settings.updateAvailable && settings.latestVersion
+    ? settings.latestVersion
+    : installedVersion;
+  const downloadable = Boolean(settings.latestVersion)
+    && compareVersions(settings.latestVersion, installedVersion) >= 0;
+  document.getElementById("downloadUpdate").hidden = !downloadable;
+  document.getElementById("downloadUpdate").textContent = CGUI18N.t(currentLanguage, "downloadVersion", { version: displayedVersion });
   CGUI18N.apply(currentLanguage);
+  document.getElementById("downloadUpdate").textContent = CGUI18N.t(currentLanguage, "downloadVersion", { version: displayedVersion });
 }
 
 async function saveSettings() {
@@ -123,6 +144,7 @@ async function saveSettings() {
   const settings = {
     enabled: document.getElementById("enabled").checked,
     language: document.getElementById("language").value,
+    languageUserSelected: true,
     checkOnStartup: document.getElementById("checkOnStartup").checked,
     intervalEnabled: document.getElementById("intervalEnabled").checked,
     intervalMinutes: interval,
@@ -142,6 +164,7 @@ async function saveSettings() {
     notifyLoginIssue: document.getElementById("notifyLoginIssue").checked,
     showBadge: document.getElementById("showBadge").checked,
     updateCheckEnabled: document.getElementById("updateCheckEnabled").checked,
+    sourceFolderNote: document.getElementById("sourceFolderNote").value.trim(),
     openTabIfMissing: document.getElementById("openTabIfMissing").checked,
     recipients: collectRecipients()
   };
@@ -175,7 +198,7 @@ document.getElementById("openTutorial").addEventListener("click", () => {
 
 document.getElementById("language").addEventListener("change", async event => {
   currentLanguage = CGUI18N.normalizeLanguage(event.target.value);
-  await chrome.storage.local.set({ language: currentLanguage });
+  await chrome.storage.local.set({ language: currentLanguage, languageUserSelected: true });
   CGUI18N.apply(currentLanguage);
   chrome.runtime.sendMessage({ type: "CGU_SETTINGS_UPDATED" });
 });
@@ -194,6 +217,30 @@ document.getElementById("downloadUpdate").addEventListener("click", () => {
 
 document.getElementById("openUpgradeGuide").addEventListener("click", () => {
   chrome.runtime.sendMessage({ type: "CGU_OPEN_UPGRADE_GUIDE" });
+});
+
+document.getElementById("openExtensionsPage").addEventListener("click", () => {
+  chrome.runtime.sendMessage({ type: "CGU_OPEN_EXTENSIONS_PAGE" }, res => {
+    if (!res?.ok) showMessage(res?.message || tr("請手動開啟 chrome://extensions/", "Open chrome://extensions/ manually."));
+  });
+});
+
+document.getElementById("openDownloadsFolder").addEventListener("click", () => {
+  chrome.runtime.sendMessage({ type: "CGU_OPEN_DOWNLOADS_FOLDER" });
+});
+
+document.getElementById("copySourceFolder").addEventListener("click", async () => {
+  const value = document.getElementById("sourceFolderNote").value.trim();
+  if (!value) {
+    showMessage(tr("尚未記錄程式目錄", "No source folder has been saved."));
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(value);
+    showMessage(tr("程式目錄已複製", "Source folder copied."));
+  } catch {
+    showMessage(tr("無法自動複製，請手動選取路徑", "Unable to copy automatically. Select the path manually."));
+  }
 });
 
 document.getElementById("clearSeen").addEventListener("click", async () => {

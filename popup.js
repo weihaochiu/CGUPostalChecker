@@ -165,7 +165,7 @@ function renderRecipientResults(data, recipients) {
 
 async function loadStatus() {
   const data = await chrome.storage.local.get(POPUP_STORAGE_KEYS);
-  currentLanguage = CGUI18N.normalizeLanguage(data.language);
+  currentLanguage = CGUI18N.normalizeLanguage(data.language || CGUI18N.detect());
   CGUI18N.apply(currentLanguage);
 
   const enabledBadge = document.getElementById("enabledBadge");
@@ -195,6 +195,7 @@ async function loadStatus() {
   updateBanner.hidden = !data.updateAvailable;
   if (data.updateAvailable) {
     document.getElementById("updateStatus").textContent = tr("updateAvailable", { version: data.latestVersion || "" });
+    document.getElementById("downloadUpdate").textContent = tr("downloadVersion", { version: data.latestVersion || chrome.runtime.getManifest().version });
   }
 
   renderRecipientResults(data, recipients);

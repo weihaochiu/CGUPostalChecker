@@ -117,7 +117,17 @@
       <div class="button-row">
         <button id="checkUpdate" data-i18n="checkUpdate">檢查更新</button>
         <button id="downloadUpdate" class="success" data-i18n="downloadLatest">下載最新版</button>
+        <button id="openDownloadsFolder" class="secondary" data-i18n="openDownloadsFolder">開啟下載資料夾</button>
+        <button id="openExtensionsPage" class="secondary" data-i18n="openExtensionsPage">開啟 Chrome 擴充功能頁</button>
         <button id="openUpgradeGuide" class="secondary" data-i18n="upgradeGuide">升級教學</button>
+      </div>
+      <div class="source-folder-note">
+        <label for="sourceFolderNote" data-i18n="sourceFolderLabel">原始程式資料夾備忘</label>
+        <div class="inline-field">
+          <input id="sourceFolderNote" type="text" data-i18n-placeholder="sourceFolderHint">
+          <button id="copySourceFolder" class="secondary" type="button" data-i18n="copySourceFolder">複製程式目錄</button>
+        </div>
+        <p class="small" data-i18n="sourceFolderSecurityNote">Chrome 基於安全限制，無法自動取得或直接開啟未封裝外掛的 Windows 原始路徑。</p>
       </div>
     </div>
 

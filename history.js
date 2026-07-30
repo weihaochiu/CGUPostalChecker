@@ -46,7 +46,7 @@ function escapeHtml(text) {
 
 async function loadLogs() {
   const data = await chrome.storage.local.get(["checkLogs", "language"]);
-  currentLanguage = CGUI18N.normalizeLanguage(data.language);
+  currentLanguage = CGUI18N.normalizeLanguage(data.language || CGUI18N.detect());
   CGUI18N.apply(currentLanguage);
   const logs = data.checkLogs || [];
   body.innerHTML = logs.map(log => `

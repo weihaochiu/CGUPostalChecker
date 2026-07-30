@@ -15,22 +15,30 @@
       </select>
     </div>
     <article data-guide-lang="zh-TW">
-      <h1>長庚大學自動查詢郵件 v1.1.0</h1>
+      <h1>長庚大學自動查詢郵件 v1.1.1</h1>
       <div class="card"><h2>安裝</h2><ol>
         <li>解壓縮 ZIP 到固定資料夾，例如 <code>C:\Program Files\Google\ChromeExtensions\CGUPostalChecker</code>。</li>
         <li>開啟 <code>chrome://extensions/</code>，啟用「開發人員模式」。</li>
         <li>按「載入未封裝項目」，選擇直接包含 <code>manifest.json</code> 的資料夾。</li>
         <li>開啟長庚郵件查詢頁並登入。</li>
         <li>在設定頁選擇語言、新增收件人並儲存。</li>
+        <li>在「原始程式資料夾備忘」記錄第 1 步的固定路徑；Chrome 無法日後自動找回該原生路徑。</li>
         <li>按「立即查詢一次」，確認每位收件人都成功，再開始監控。</li>
-      </ol></div>
+      </ol><p>首次安裝會偵測 Chrome 語言：繁體中文語系預設繁中，其餘一律預設英文；手動選擇後會保留。</p></div>
       <div class="card"><h2>圖示與通知</h2><ul>
         <li>藍色數字：目前郵件件數。</li>
         <li>紅色 <strong>!</strong>：至少一位收件人查詢失敗；請開啟 Popup 或紀錄查看原因。</li>
         <li>沒有數字：成功查詢且為 0 件，或已關閉件數顯示。</li>
         <li>本外掛不會監聽 Gmail；通知信到達後，要等下一輪查詢才會提醒。</li>
       </ul></div>
-      <div class="card"><h2>GitHub 更新</h2><p>預設每天檢查 GitHub 最新版本。發現較新版本時會顯示通知及下載按鈕。未封裝外掛無法安全地自動覆寫程式，請依升級教學操作。</p></div>
+      <div class="card"><h2>GitHub 更新</h2><p>預設每天檢查 GitHub 最新版本。下載檔名會包含版本號，例如 <code>CGUPostalChecker-v1.1.1.zip</code>。未封裝外掛無法安全地自動覆寫程式；真正自動安裝更新需要發布到 Chrome Web Store。</p></div>
+      <div class="card"><h2>升級流程</h2><ol>
+        <li>按「複製程式目錄」取得已記錄的原始路徑。</li>
+        <li>按「下載最新版」及「開啟下載資料夾」，解壓縮 ZIP。</li>
+        <li>將新版全部檔案覆蓋到原始資料夾。</li>
+        <li>按「開啟 Chrome 擴充功能頁」，不要移除外掛，直接按「重新載入」。</li>
+        <li>確認版本與設定後執行一次立即查詢。</li>
+      </ol></div>
       <div class="card"><h2>故障排除</h2><ul>
         <li>紅色 !：確認查詢頁仍登入，再按「立即查詢一次」。</li>
         <li>收到通知信但外掛沒提醒：比較信件時間與上次查詢時間。</li>
@@ -38,22 +46,30 @@
       </ul></div>
     </article>
     <article data-guide-lang="en" hidden>
-      <h1>CGU Postal Mail Checker v1.1.0</h1>
+      <h1>CGU Postal Mail Checker v1.1.1</h1>
       <div class="card"><h2>Installation</h2><ol>
         <li>Extract the ZIP to a permanent folder such as <code>C:\Program Files\Google\ChromeExtensions\CGUPostalChecker</code>.</li>
         <li>Open <code>chrome://extensions/</code> and enable Developer mode.</li>
         <li>Select <strong>Load unpacked</strong> and choose the folder containing <code>manifest.json</code>.</li>
         <li>Open the CGU postal page and sign in.</li>
         <li>Choose a language, add recipients, and save settings.</li>
+        <li>Save the permanent folder from step 1 in Source folder note; Chrome cannot recover the native path automatically later.</li>
         <li>Select <strong>Check now</strong>; confirm every recipient succeeds, then start monitoring.</li>
-      </ol></div>
+      </ol><p>On first installation, Traditional Chinese locales default to Chinese; every other locale defaults to English. Manual selections are preserved.</p></div>
       <div class="card"><h2>Icon and notifications</h2><ul>
         <li>Blue number: current mail count.</li>
         <li>Red <strong>!</strong>: at least one recipient failed; open the popup or history for details.</li>
         <li>No badge: a successful zero result, or the count badge is disabled.</li>
         <li>The extension does not monitor Gmail. A notification email may arrive before the next query.</li>
       </ul></div>
-      <div class="card"><h2>GitHub updates</h2><p>The extension checks GitHub daily. When a newer version is found, it displays a notification and download button. An unpacked extension cannot safely overwrite itself; follow the Upgrade Guide.</p></div>
+      <div class="card"><h2>GitHub updates</h2><p>The extension checks GitHub daily and saves a versioned filename such as <code>CGUPostalChecker-v1.1.1.zip</code>. An unpacked extension cannot safely overwrite itself; fully automatic installation requires Chrome Web Store distribution.</p></div>
+      <div class="card"><h2>Upgrade workflow</h2><ol>
+        <li>Select <strong>Copy source folder</strong> to retrieve the saved path.</li>
+        <li>Select <strong>Download latest</strong> and <strong>Open Downloads folder</strong>, then extract the ZIP.</li>
+        <li>Copy every new file over the original source folder.</li>
+        <li>Select <strong>Open Chrome extensions</strong>. Do not remove the extension; select <strong>Reload</strong>.</li>
+        <li>Verify the version and settings, then run one manual check.</li>
+      </ol></div>
       <div class="card"><h2>Troubleshooting</h2><ul>
         <li>Red !: verify the postal page is signed in, then select <strong>Check now</strong>.</li>
         <li>Email received but no alert: compare the email time with the last query time.</li>

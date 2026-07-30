@@ -1,15 +1,21 @@
-v1.1.0 更新內容
+v1.1.1 更新內容
 - 修正第一位收件人因頁面尚未準備而被跳過。
 - 查詢失敗時自動重試三次並保留實際錯誤。
 - 任一收件人失敗時，外掛圖示顯示紅色 !，Popup 顯示失敗者與原因。
 - 只有所有收件人成功後才顯示「查詢完成」並清除錯誤 badge。
 - 新增繁體中文／英文切換，涵蓋介面、說明與教學。
+- 首次安裝自動偵測 Chrome 語言；繁體中文語系預設繁中，其餘一律預設英文。
+- 下載最新版時自動使用含版本號的檔名，例如 CGUPostalChecker-v1.1.1.zip。
+- 新增開啟 Chrome 擴充功能頁、開啟下載資料夾與原始程式資料夾備忘。
 - 每天自動檢查 GitHub 最新版本，並提供下載與雙語升級教學。
 
-v1.1.0 changes
+v1.1.1 changes
 - Prevents the first recipient from being skipped before the page is ready.
 - Retries failed recipient queries three times and preserves the actual error.
 - Shows a red ! badge and recipient-level details when any query fails.
 - Clears the error badge only after every recipient succeeds.
 - Adds Traditional Chinese and English interfaces, descriptions, and guides.
+- Detects the Chrome language on first install; Traditional Chinese locales default to Chinese and all other locales default to English.
+- Saves GitHub downloads with a versioned filename such as CGUPostalChecker-v1.1.1.zip.
+- Adds buttons for the Chrome extensions page and Downloads folder, plus a saved source-folder note.
 - Checks GitHub daily and provides download links plus a bilingual upgrade guide.

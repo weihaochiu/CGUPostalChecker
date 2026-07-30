@@ -18,6 +18,7 @@ const RUN_TIMEOUT_MS = 3 * 60 * 1000;
 const DEFAULT_SETTINGS = {
   enabled: false,
   language: "zh-TW",
+  languageUserSelected: false,
   checkOnStartup: true,
   intervalEnabled: true,
   intervalMinutes: 360,
@@ -236,6 +237,19 @@ async function setDefaultsIfNeeded() {
     patch.intervalMinutes = 360;
   }
 
+  // 只在第一次安裝或語言設定無效時偵測 Chrome / Windows 語言。
+  // 繁體中文語系使用 zh-TW，其餘（包含簡體中文）一律使用英文。
+  const detectedLanguage = CGUI18N.detect();
+  if (!["zh-TW", "en"].includes(data.language)) {
+    patch.language = detectedLanguage;
+    patch.languageUserSelected = false;
+  } else if (data.languageUserSelected === undefined) {
+    // 舊版沒有記錄「是否手動選擇」：若現有值與偵測值不同，視為使用者曾手動選擇。
+    const likelyManualSelection = data.language !== detectedLanguage;
+    patch.languageUserSelected = likelyManualSelection;
+    if (!likelyManualSelection) patch.language = detectedLanguage;
+  }
+
   if (Object.keys(patch).length) await chrome.storage.local.set(patch);
 }
 
@@ -403,6 +417,62 @@ async function checkForUpdates(options = {}) {
       lastUpdateCheckAt: Date.now()
     });
     return { ok: false, currentVersion, message };
+  }
+}
+
+async function downloadLatestVersion() {
+  const settings = await getSettings();
+  const currentVersion = chrome.runtime.getManifest().version;
+  const updateResult = await checkForUpdates({ manual: true });
+  const latestVersion = String(updateResult.latestVersion || "").trim();
+
+  if (!updateResult.ok || !latestVersion) {
+    return {
+      ok: false,
+      message: updateResult.message || (settings.language === "en"
+        ? "Unable to determine the latest GitHub version."
+        : "無法確認 GitHub 最新版本。")
+    };
+  }
+
+  if (compareVersions(latestVersion, currentVersion) < 0) {
+    return {
+      ok: false,
+      message: settings.language === "en"
+        ? `GitHub v${latestVersion} is older than installed v${currentVersion}; download cancelled.`
+        : `GitHub v${latestVersion} 舊於已安裝的 v${currentVersion}，已取消下載。`
+    };
+  }
+
+  const safeVersion = /^\d+(?:\.\d+){1,3}$/.test(latestVersion)
+    ? latestVersion
+    : latestVersion;
+  const filename = `CGUPostalChecker-v${safeVersion}.zip`;
+
+  try {
+    const downloadId = await chrome.downloads.download({
+      url: UPDATE_DOWNLOAD_URL,
+      filename,
+      conflictAction: "uniquify",
+      saveAs: true
+    });
+    return {
+      ok: true,
+      downloadId,
+      filename,
+      message: settings.language === "en"
+        ? `Downloading ${filename}`
+        : `正在下載 ${filename}`
+    };
+  } catch (err) {
+    await chrome.tabs.create({ url: UPDATE_DOWNLOAD_URL, active: true });
+    return {
+      ok: false,
+      filename,
+      message: settings.language === "en"
+        ? `Chrome could not assign the versioned filename. The GitHub download page was opened instead.`
+        : "Chrome 無法指定含版本號的檔名，已改為開啟 GitHub 下載頁面。"
+    };
   }
 }
 
@@ -985,7 +1055,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 chrome.notifications.onButtonClicked.addListener(async (notificationId, buttonIndex) => {
   if (notificationId !== UPDATE_NOTIFICATION_ID) return;
   if (buttonIndex === 0) {
-    await chrome.tabs.create({ url: UPDATE_DOWNLOAD_URL, active: true });
+    await downloadLatestVersion();
   } else if (buttonIndex === 1) {
     await chrome.tabs.create({ url: chrome.runtime.getURL("升級教學.html"), active: true });
   }
@@ -1048,7 +1118,28 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 
     if (message.type === "CGU_OPEN_UPDATE_DOWNLOAD") {
-      await chrome.tabs.create({ url: UPDATE_DOWNLOAD_URL, active: true });
+      sendResponse(await downloadLatestVersion());
+      return;
+    }
+
+    if (message.type === "CGU_OPEN_EXTENSIONS_PAGE") {
+      try {
+        await chrome.tabs.create({ url: "chrome://extensions/", active: true });
+        sendResponse({ ok: true });
+      } catch (err) {
+        const settings = await getSettings();
+        sendResponse({
+          ok: false,
+          message: settings.language === "en"
+            ? "Chrome blocked this internal page. Open chrome://extensions/ manually."
+            : "Chrome 阻擋開啟內部頁面，請手動輸入 chrome://extensions/。"
+        });
+      }
+      return;
+    }
+
+    if (message.type === "CGU_OPEN_DOWNLOADS_FOLDER") {
+      chrome.downloads.showDefaultFolder();
       sendResponse({ ok: true });
       return;
     }

@@ -34,7 +34,14 @@
       installedVersion: "已安裝版本",
       checkUpdate: "檢查更新",
       downloadLatest: "下載最新版",
+      downloadVersion: "下載最新版 v{version}",
       upgradeGuide: "升級教學",
+      openExtensionsPage: "開啟 Chrome 擴充功能頁",
+      openDownloadsFolder: "開啟下載資料夾",
+      sourceFolderLabel: "原始程式資料夾備忘",
+      sourceFolderHint: "例如：C:\\Program Files\\Google\\ChromeExtensions\\CGUPostalChecker",
+      sourceFolderSecurityNote: "Chrome 基於安全限制，無法自動取得或直接開啟未封裝外掛的 Windows 原始路徑。可在此記錄路徑，之後一鍵複製。",
+      copySourceFolder: "複製程式目錄",
       language: "介面語言",
       traditionalChinese: "繁體中文",
       english: "English",
@@ -140,7 +147,14 @@
       installedVersion: "Installed version",
       checkUpdate: "Check for updates",
       downloadLatest: "Download latest",
+      downloadVersion: "Download latest v{version}",
       upgradeGuide: "Upgrade guide",
+      openExtensionsPage: "Open Chrome extensions",
+      openDownloadsFolder: "Open Downloads folder",
+      sourceFolderLabel: "Source folder note",
+      sourceFolderHint: "Example: C:\\Program Files\\Google\\ChromeExtensions\\CGUPostalChecker",
+      sourceFolderSecurityNote: "For security, Chrome cannot detect or directly open the native Windows source path of an unpacked extension. Save the path here and copy it later.",
+      copySourceFolder: "Copy source folder",
       language: "Interface language",
       traditionalChinese: "Traditional Chinese",
       english: "English",
@@ -218,6 +232,22 @@
     return language === "en" ? "en" : "zh-TW";
   }
 
+  function detect() {
+    const browserLanguage = String(
+      globalThis.chrome?.i18n?.getUILanguage?.()
+      || globalThis.navigator?.language
+      || ""
+    ).toLowerCase().replace(/_/g, "-");
+
+    const traditionalChinese = browserLanguage === "zh-tw"
+      || browserLanguage === "zh-hk"
+      || browserLanguage === "zh-mo"
+      || browserLanguage === "zh-hant"
+      || browserLanguage.startsWith("zh-hant-");
+
+    return traditionalChinese ? "zh-TW" : "en";
+  }
+
   function t(language, key, replacements = {}) {
     const lang = normalizeLanguage(language);
     const template = messages[lang][key] ?? messages["zh-TW"][key] ?? key;
@@ -235,5 +265,5 @@
     });
   }
 
-  globalThis.CGUI18N = { apply, normalizeLanguage, t };
+  globalThis.CGUI18N = { apply, detect, normalizeLanguage, t };
 })();
