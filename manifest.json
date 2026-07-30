@@ -2,8 +2,8 @@
   "manifest_version": 3,
   "name": "長庚大學郵件查詢｜CGU Postal Checker",
   "short_name": "CGU Postal",
-  "version": "1.1.1",
-  "description": "長庚郵件自動查詢、錯誤提示與版本檢查。CGU postal queries, error alerts, and update checks.",
+  "version": "1.2.0",
+  "description": "長庚郵件自動查詢、錯誤提示、設定備份與診斷報告。CGU postal queries, backups, diagnostics, and error alerts.",
   "permissions": [
     "alarms",
     "downloads",
@@ -11,6 +11,9 @@
     "storage",
     "scripting",
     "tabs"
+  ],
+  "optional_permissions": [
+    "debugger"
   ],
   "host_permissions": [
     "https://www4.is.cgu.edu.tw/postal/*",

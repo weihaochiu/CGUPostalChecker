@@ -1,4 +1,4 @@
-CGU Postal Mail Checker v1.1.1 | Quick Installation
+CGU Postal Mail Checker v1.2.0 | Quick Installation
 
 1. Extract the ZIP to a permanent folder.
 2. Open chrome://extensions/ and enable Developer mode.
@@ -6,6 +6,7 @@ CGU Postal Mail Checker v1.1.1 | Quick Installation
 4. Sign in at https://www4.is.cgu.edu.tw/postal/studentletter.aspx
 5. Open Settings, choose a language, add recipients, and save the folder from step 1 in Source folder note.
 6. Save, then select Check now. Confirm that no red ! appears before starting monitoring.
+7. In Settings, select Back up all settings to save the initial configuration.
 
 First installation: Traditional Chinese Chrome locales default to Traditional Chinese; all other locales default to English.
 

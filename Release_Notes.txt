@@ -1,4 +1,10 @@
-CGU Postal Mail Checker v1.1.1 | Release Notes
+CGU Postal Mail Checker v1.2.0 | Release Notes
+
+- Adds complete settings backup and validated import.
+- Adds diagnostic JSON and ZIP reports with version, browser, query-field, error-log, and latest-result information.
+- Adds optional query-page screenshots on errors. The feature is off by default and requests optional debugger permission only when enabled.
+- Adds author contact information and website.
+- Keeps diagnostic files independent of Gmail or any specific email provider.
 
 - Prevents the first recipient from being skipped before the page is ready.
 - Retries failed recipient queries three times and preserves the actual error.

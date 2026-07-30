@@ -37,6 +37,7 @@ const DEFAULT_SETTINGS = {
   notifyOncePerDay: true,
   notifyLoginIssue: true,
   showBadge: true,
+  captureScreenshotOnError: false,
   openTabIfMissing: true,
   updateCheckEnabled: true,
   updateCheckIntervalMinutes: 1440,
@@ -46,6 +47,7 @@ const DEFAULT_SETTINGS = {
   lastUpdateCheckAt: 0,
   lastUpdateNotifiedVersion: "",
   latestDownloadUrl: UPDATE_DOWNLOAD_URL,
+  sourceFolderNote: "",
   dateType: "0",
   dateInterval: "1",
   defaultStatus: "0",
@@ -628,6 +630,75 @@ async function sendToTab(tabId, message) {
   }
 }
 
+async function captureErrorScreenshot(tabId, context = {}) {
+  const settings = await getSettings();
+  if (!settings.captureScreenshotOnError || !tabId) return { ok: false, skipped: true };
+
+  const permissionGranted = await chrome.permissions.contains({ permissions: ["debugger"] });
+  if (!permissionGranted) {
+    const status = {
+      ok: false,
+      capturedAt: nowIso(),
+      runId: context.runId || "",
+      error: "Optional debugger permission is not granted."
+    };
+    await chrome.storage.local.set({ lastErrorScreenshotStatus: status });
+    return status;
+  }
+
+  const previous = (await chrome.storage.local.get(["lastErrorScreenshotStatus"])).lastErrorScreenshotStatus;
+  if (context.runId && previous?.runId === context.runId) return { ok: false, skipped: true, duplicate: true };
+
+  const debuggee = { tabId };
+  let attached = false;
+  try {
+    await chrome.debugger.attach(debuggee, "1.3");
+    attached = true;
+    const result = await chrome.debugger.sendCommand(debuggee, "Page.captureScreenshot", {
+      format: "jpeg",
+      quality: 65,
+      fromSurface: true,
+      captureBeyondViewport: false
+    });
+    if (!result?.data) throw new Error("Chrome returned no screenshot data.");
+
+    const screenshot = {
+      dataUrl: `data:image/jpeg;base64,${result.data}`,
+      mimeType: "image/jpeg",
+      capturedAt: nowIso(),
+      runId: context.runId || "",
+      recipient: context.recipient || "",
+      error: context.error || "",
+      tabId
+    };
+    const status = {
+      ok: true,
+      capturedAt: screenshot.capturedAt,
+      runId: screenshot.runId,
+      recipient: screenshot.recipient,
+      mimeType: screenshot.mimeType
+    };
+    await chrome.storage.local.set({
+      lastErrorScreenshot: screenshot,
+      lastErrorScreenshotStatus: status
+    });
+    return status;
+  } catch (err) {
+    const status = {
+      ok: false,
+      capturedAt: nowIso(),
+      runId: context.runId || "",
+      recipient: context.recipient || "",
+      error: String(err && err.message ? err.message : err)
+    };
+    await chrome.storage.local.set({ lastErrorScreenshotStatus: status });
+    await appendLog({ type: "screenshot_error", message: status.error });
+    return status;
+  } finally {
+    if (attached) await chrome.debugger.detach(debuggee).catch(() => {});
+  }
+}
+
 async function waitForContentScriptReady(tabId) {
   let lastError = "查詢頁面的程式尚未準備完成";
   let lastErrorCode = "CONTENT_SCRIPT_UNAVAILABLE";
@@ -736,6 +807,7 @@ async function startRun(reason = "manual") {
       activeRun.failures = recipients.map(recipient => ({ recipient: recipient.name, message }));
       await chrome.storage.local.set({ activeRun });
       await appendLog({ type: "error", reason, message });
+      await captureErrorScreenshot(tab.id, { runId, error: message });
       await finishRun(activeRun, "error");
       return { ok: false, message };
     }
@@ -745,8 +817,10 @@ async function startRun(reason = "manual") {
     return { ok: true, message: "已開始查詢" };
   } catch (err) {
     await chrome.storage.local.set({ activeRun: null, pendingParse: null });
-    await appendLog({ type: "error", reason, message: String(err && err.message ? err.message : err) });
-    return { ok: false, message: String(err && err.message ? err.message : err) };
+    const message = String(err && err.message ? err.message : err);
+    await appendLog({ type: "error", reason, message });
+    await captureErrorScreenshot(activeRun.tabId, { runId, error: message });
+    return { ok: false, message };
   }
 }
 
@@ -803,6 +877,11 @@ async function runRecipient(tabId, activeRun, index) {
       type: "error",
       recipient: recipient.name,
       message: errorMessage
+    });
+    await captureErrorScreenshot(tabId, {
+      runId: activeRun.runId,
+      recipient: recipient.name,
+      error: errorMessage
     });
     await handleLoginOrTabIssue(recipient, errorMessage);
     await continueNext(activeRun.runId, index);
@@ -1023,6 +1102,145 @@ async function maybeNotify(settings, recipient, rows, newRows) {
   await notify(textFor(settings, "appName"), message);
 }
 
+async function collectDiagnostics() {
+  const settings = await getSettings();
+  const storage = await chrome.storage.local.get([
+    "checkLogs",
+    "lastRunErrors",
+    "lastRunStatus",
+    "lastCheckTime",
+    "lastResultText",
+    "lastCountsByRecipient",
+    "lastRecipientDetails",
+    "nextAllowedCheckAt",
+    "lastManualCheckAt",
+    "lastAutoCheckAt",
+    "activeRun",
+    "lastErrorScreenshot",
+    "lastErrorScreenshotStatus"
+  ]);
+  const platformInfo = await chrome.runtime.getPlatformInfo();
+  const permissionInfo = await chrome.permissions.getAll();
+  const tabs = await chrome.tabs.query({ url: POSTAL_URL_PATTERN });
+  const queryTabs = [];
+
+  for (const tab of tabs) {
+    let page = null;
+    if (tab.id) {
+      await ensureContentScript(tab.id);
+      page = await sendToTab(tab.id, { type: "CGU_DIAGNOSE_PAGE" });
+    }
+    queryTabs.push({
+      tabId: tab.id ?? null,
+      windowId: tab.windowId,
+      active: Boolean(tab.active),
+      status: tab.status || "",
+      url: tab.url || "",
+      title: tab.title || "",
+      page
+    });
+  }
+
+  const logs = Array.isArray(storage.checkLogs) ? storage.checkLogs : [];
+  const errorTypes = new Set([
+    "error",
+    "recipient_retry",
+    "run_finished_with_errors",
+    "stale_run_cleared",
+    "screenshot_error"
+  ]);
+  const screenshot = storage.lastErrorScreenshot
+    ? {
+        capturedAt: storage.lastErrorScreenshot.capturedAt || "",
+        runId: storage.lastErrorScreenshot.runId || "",
+        recipient: storage.lastErrorScreenshot.recipient || "",
+        error: storage.lastErrorScreenshot.error || "",
+        mimeType: storage.lastErrorScreenshot.mimeType || "",
+        availableInZip: Boolean(storage.lastErrorScreenshot.dataUrl)
+      }
+    : null;
+  const userAgent = navigator.userAgent || "";
+  const chromeMatch = userAgent.match(/(?:Chrome|Chromium)\/([\d.]+)/);
+
+  return {
+    format: "CGUPostalChecker-diagnostics",
+    schemaVersion: 1,
+    generatedAt: nowIso(),
+    privacyNotice: settings.language === "en"
+      ? "This report may contain recipient names, query results, and a local source-folder path. Review it before sharing."
+      : "本報告可能包含收件人姓名、查詢結果與本機原始程式路徑，分享前請先確認內容。",
+    extension: {
+      name: chrome.runtime.getManifest().name,
+      version: chrome.runtime.getManifest().version,
+      manifestVersion: chrome.runtime.getManifest().manifest_version,
+      id: chrome.runtime.id
+    },
+    browser: {
+      chromeVersion: chromeMatch?.[1] || "unknown",
+      userAgent,
+      uiLanguage: chrome.i18n.getUILanguage(),
+      platformInfo
+    },
+    permissions: {
+      permissions: permissionInfo.permissions || [],
+      origins: permissionInfo.origins || []
+    },
+    configuration: {
+      enabled: settings.enabled,
+      language: settings.language,
+      recipients: settings.recipients,
+      schedule: {
+        checkOnStartup: settings.checkOnStartup,
+        intervalEnabled: settings.intervalEnabled,
+        intervalMinutes: settings.intervalMinutes,
+        startupDelayMinMinutes: settings.startupDelayMinMinutes,
+        startupDelayMaxMinutes: settings.startupDelayMaxMinutes,
+        scheduleJitterMaxMinutes: settings.scheduleJitterMaxMinutes,
+        manualCooldownMinutes: settings.manualCooldownMinutes,
+        recipientDelayMinSeconds: settings.recipientDelayMinSeconds,
+        recipientDelayMaxSeconds: settings.recipientDelayMaxSeconds,
+        onlyWithinHours: settings.onlyWithinHours,
+        activeStartTime: settings.activeStartTime,
+        activeEndTime: settings.activeEndTime,
+        skipWeekends: settings.skipWeekends
+      },
+      notifications: {
+        notifyOnlyWhenMailExists: settings.notifyOnlyWhenMailExists,
+        notifyOncePerDay: settings.notifyOncePerDay,
+        notifyLoginIssue: settings.notifyLoginIssue,
+        showBadge: settings.showBadge
+      },
+      sourceFolderNote: settings.sourceFolderNote || "",
+      captureScreenshotOnError: settings.captureScreenshotOnError
+    },
+    queryPageStatus: {
+      tabCount: queryTabs.length,
+      tabs: queryTabs
+    },
+    latestQuery: {
+      lastRunStatus: storage.lastRunStatus || "",
+      lastRunErrors: storage.lastRunErrors || [],
+      lastCheckTime: storage.lastCheckTime || "",
+      lastResultText: storage.lastResultText || "",
+      lastCountsByRecipient: storage.lastCountsByRecipient || {},
+      lastRecipientDetails: storage.lastRecipientDetails || {},
+      nextAllowedCheckAt: storage.nextAllowedCheckAt || 0,
+      lastManualCheckAt: storage.lastManualCheckAt || 0,
+      lastAutoCheckAt: storage.lastAutoCheckAt || 0,
+      activeRun: storage.activeRun || null
+    },
+    errorLogs: logs.filter(log => errorTypes.has(log.type)).slice(0, 200),
+    recentLogs: logs.slice(0, 100),
+    screenshot,
+    screenshotStatus: storage.lastErrorScreenshotStatus || null,
+    author: {
+      name: "Wei-Hao Chiu",
+      email: "weihao.chiu@gmail.com",
+      website: "https://weihaochiu.github.io/"
+    }
+  };
+}
+
 chrome.runtime.onInstalled.addListener(async () => {
   await setDefaultsIfNeeded();
   const settings = await getSettings();
@@ -1167,6 +1385,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       return;
     }
 
+    if (message.type === "CGU_COLLECT_DIAGNOSTICS") {
+      sendResponse({ ok: true, report: await collectDiagnostics() });
+      return;
+    }
+
     if (message.type === "CGU_SETTINGS_UPDATED") {
       const settings = await getSettings();
       const interval = effectiveAutoIntervalMinutes(settings);
@@ -1195,6 +1418,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       const errorMessage = queryErrorText(currentSettings, message);
       await recordRecipientFailure(message.runId, recipient, errorMessage);
       await appendLog({ type: "error", recipient: recipient.name || "", message: errorMessage });
+      const activeRun = currentSettings.activeRun;
+      await captureErrorScreenshot(message.tabId || activeRun?.tabId, {
+        runId: message.runId,
+        recipient: recipient.name || "",
+        error: errorMessage
+      });
       await handleLoginOrTabIssue(recipient, errorMessage);
       await continueNext(message.runId, message.index || 0);
       sendResponse({ ok: true });

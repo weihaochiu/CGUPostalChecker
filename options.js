@@ -25,6 +25,7 @@ const DEFAULT_SETTINGS = {
   updateAvailable: false,
   updateCheckStatus: "尚未檢查",
   sourceFolderNote: "",
+  captureScreenshotOnError: false,
   openTabIfMissing: true,
   recipients: []
 };
@@ -53,6 +54,32 @@ function showMessage(text) {
   setTimeout(() => {
     if (msgEl.textContent === text) msgEl.textContent = "";
   }, 4000);
+}
+
+function showDiagnosticStatus(text, isError = false) {
+  const element = document.getElementById("diagnosticStatus");
+  element.textContent = text;
+  element.className = isError ? "small error-text" : "small";
+}
+
+function runtimeMessage(message) {
+  return new Promise((resolve, reject) => {
+    chrome.runtime.sendMessage(message, response => {
+      if (chrome.runtime.lastError) {
+        reject(new Error(chrome.runtime.lastError.message));
+        return;
+      }
+      resolve(response);
+    });
+  });
+}
+
+async function updateScreenshotPermissionStatus() {
+  const granted = await chrome.permissions.contains({ permissions: ["debugger"] });
+  document.getElementById("screenshotPermissionStatus").textContent = granted
+    ? tr("錯誤截圖權限已授予", "Error screenshot permission granted")
+    : tr("錯誤截圖權限未授予", "Error screenshot permission not granted");
+  return granted;
 }
 
 function addRecipientCard(recipient = {}) {
@@ -96,10 +123,19 @@ async function loadSettings() {
     "notifyLoginIssue",
     "showBadge",
     "updateCheckEnabled",
-    "openTabIfMissing"
+    "openTabIfMissing",
+    "captureScreenshotOnError"
   ]) {
     document.getElementById(key).checked = Boolean(settings[key]);
   }
+
+  const debuggerGranted = await chrome.permissions.contains({ permissions: ["debugger"] });
+  if (settings.captureScreenshotOnError && !debuggerGranted) {
+    settings.captureScreenshotOnError = false;
+    document.getElementById("captureScreenshotOnError").checked = false;
+    await chrome.storage.local.set({ captureScreenshotOnError: false });
+  }
+  await updateScreenshotPermissionStatus();
 
   document.getElementById("intervalMinutes").value = Math.max(settings.intervalMinutes || 360, 120);
   document.getElementById("startupDelayMinMinutes").value = settings.startupDelayMinMinutes || 5;
@@ -165,6 +201,7 @@ async function saveSettings() {
     showBadge: document.getElementById("showBadge").checked,
     updateCheckEnabled: document.getElementById("updateCheckEnabled").checked,
     sourceFolderNote: document.getElementById("sourceFolderNote").value.trim(),
+    captureScreenshotOnError: document.getElementById("captureScreenshotOnError").checked,
     openTabIfMissing: document.getElementById("openTabIfMissing").checked,
     recipients: collectRecipients()
   };
@@ -201,6 +238,7 @@ document.getElementById("language").addEventListener("change", async event => {
   currentLanguage = CGUI18N.normalizeLanguage(event.target.value);
   await chrome.storage.local.set({ language: currentLanguage, languageUserSelected: true });
   CGUI18N.apply(currentLanguage);
+  await updateScreenshotPermissionStatus();
   chrome.runtime.sendMessage({ type: "CGU_SETTINGS_UPDATED" });
 });
 
@@ -243,6 +281,150 @@ document.getElementById("copySourceFolder").addEventListener("click", async () =
     showMessage(tr("無法自動複製，請手動選取路徑", "Unable to copy automatically. Select the path manually."));
   }
 });
+
+document.getElementById("captureScreenshotOnError").addEventListener("change", async event => {
+  const checkbox = event.target;
+  if (checkbox.checked) {
+    const granted = await chrome.permissions.request({ permissions: ["debugger"] });
+    if (!granted) {
+      checkbox.checked = false;
+      await chrome.storage.local.set({ captureScreenshotOnError: false });
+      document.getElementById("screenshotPermissionStatus").textContent = tr(
+        "未授予權限，錯誤截圖維持關閉",
+        "Permission was not granted; error screenshots remain disabled"
+      );
+      return;
+    }
+    await chrome.storage.local.set({ captureScreenshotOnError: true });
+    document.getElementById("screenshotPermissionStatus").textContent = tr(
+      "錯誤截圖已啟用；僅在查詢錯誤時擷取長庚查詢頁",
+      "Error screenshots enabled for the CGU query page only"
+    );
+    return;
+  }
+
+  await chrome.storage.local.set({
+    captureScreenshotOnError: false,
+    lastErrorScreenshot: null,
+    lastErrorScreenshotStatus: null
+  });
+  await chrome.permissions.remove({ permissions: ["debugger"] });
+  document.getElementById("screenshotPermissionStatus").textContent = tr(
+    "錯誤截圖已關閉，既有暫存截圖已清除",
+    "Error screenshots disabled and the cached screenshot was cleared"
+  );
+});
+
+document.getElementById("backupSettings").addEventListener("click", async () => {
+  try {
+    await saveSettings();
+    const data = await chrome.storage.local.get(CGUBackupDiagnostics.SETTING_KEYS);
+    const version = chrome.runtime.getManifest().version;
+    const backup = CGUBackupDiagnostics.createBackup(data, version);
+    const filename = `CGUPostalChecker-settings-v${version}-${CGUBackupDiagnostics.timestampForFilename()}.json`;
+    await CGUBackupDiagnostics.downloadBlob(
+      new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" }),
+      filename
+    );
+    showDiagnosticStatus(tr(`設定備份已下載：${filename}`, `Settings backup downloaded: ${filename}`));
+  } catch (err) {
+    showDiagnosticStatus(tr(`備份失敗：${err.message || err}`, `Backup failed: ${err.message || err}`), true);
+  }
+});
+
+document.getElementById("importSettings").addEventListener("click", () => {
+  document.getElementById("importSettingsFile").click();
+});
+
+document.getElementById("importSettingsFile").addEventListener("change", async event => {
+  const file = event.target.files?.[0];
+  event.target.value = "";
+  if (!file) return;
+  try {
+    if (file.size > 2 * 1024 * 1024) throw new Error(tr("備份檔案超過 2 MB", "The backup file is larger than 2 MB"));
+    const imported = CGUBackupDiagnostics.parseBackup(await file.text());
+    const confirmed = confirm(tr(
+      "匯入會覆蓋目前的收件人、排程、通知、語言與其他設定。是否繼續？",
+      "Importing replaces the current recipients, schedule, notifications, language, and other settings. Continue?"
+    ));
+    if (!confirmed) return;
+
+    let screenshotWarning = "";
+    if (imported.captureScreenshotOnError) {
+      const granted = await chrome.permissions.contains({ permissions: ["debugger"] });
+      if (!granted) {
+        imported.captureScreenshotOnError = false;
+        screenshotWarning = tr(
+          "；原備份的錯誤截圖設定未啟用，請在本機重新授權",
+          "; screenshot capture was not enabled because permission must be granted again on this device"
+        );
+      }
+    }
+
+    await chrome.storage.local.set(imported);
+    await runtimeMessage({ type: "CGU_SETTINGS_UPDATED" });
+    await loadSettings();
+    showDiagnosticStatus(tr(`設定匯入完成${screenshotWarning}`, `Settings imported${screenshotWarning}`));
+  } catch (err) {
+    showDiagnosticStatus(tr(`匯入失敗：${err.message || err}`, `Import failed: ${err.message || err}`), true);
+  }
+});
+
+async function collectDiagnosticReport() {
+  const response = await runtimeMessage({ type: "CGU_COLLECT_DIAGNOSTICS" });
+  if (!response?.ok || !response.report) {
+    throw new Error(response?.message || tr("無法收集診斷資料", "Unable to collect diagnostics"));
+  }
+  return response.report;
+}
+
+async function downloadDiagnostics(asZip) {
+  const jsonButton = document.getElementById("downloadDiagnosticsJson");
+  const zipButton = document.getElementById("downloadDiagnosticsZip");
+  jsonButton.disabled = true;
+  zipButton.disabled = true;
+  showDiagnosticStatus(tr("正在收集診斷資料…", "Collecting diagnostic data…"));
+  try {
+    const report = await collectDiagnosticReport();
+    const version = chrome.runtime.getManifest().version;
+    const stamp = CGUBackupDiagnostics.timestampForFilename();
+    const jsonText = JSON.stringify(report, null, 2);
+
+    if (!asZip) {
+      const filename = `CGUPostalChecker-diagnostics-v${version}-${stamp}.json`;
+      await CGUBackupDiagnostics.downloadBlob(
+        new Blob([jsonText], { type: "application/json" }),
+        filename
+      );
+      showDiagnosticStatus(tr(`診斷 JSON 已下載：${filename}`, `Diagnostic JSON downloaded: ${filename}`));
+      return;
+    }
+
+    const screenshotData = await chrome.storage.local.get(["lastErrorScreenshot"]);
+    const screenshot = screenshotData.lastErrorScreenshot;
+    const entries = [{ name: "diagnostics.json", data: jsonText }];
+    if (screenshot?.dataUrl) {
+      entries.push({
+        name: screenshot.mimeType === "image/png" ? "last-error-screenshot.png" : "last-error-screenshot.jpg",
+        data: CGUBackupDiagnostics.dataUrlToBytes(screenshot.dataUrl)
+      });
+    }
+    const filename = `CGUPostalChecker-diagnostics-v${version}-${stamp}.zip`;
+    await CGUBackupDiagnostics.downloadBlob(CGUBackupDiagnostics.createStoredZip(entries), filename);
+    showDiagnosticStatus(tr(
+      `診斷 ZIP 已下載：${filename}${screenshot?.dataUrl ? "（含錯誤截圖）" : "（無錯誤截圖）"}`,
+      `Diagnostic ZIP downloaded: ${filename}${screenshot?.dataUrl ? " (screenshot included)" : " (no screenshot available)"}`
+    ));
+  } catch (err) {
+    showDiagnosticStatus(tr(`診斷報告失敗：${err.message || err}`, `Diagnostic report failed: ${err.message || err}`), true);
+  } finally {
+    jsonButton.disabled = false;
+    zipButton.disabled = false;
+  }
+}
+
+document.getElementById("downloadDiagnosticsJson").addEventListener("click", () => downloadDiagnostics(false));
+document.getElementById("downloadDiagnosticsZip").addEventListener("click", () => downloadDiagnostics(true));
 
 document.getElementById("clearSeen").addEventListener("click", async () => {
   if (!confirm(tr("確定清除已看過郵件紀錄？清除後，既有郵件可能會再次被視為新資料。", "Clear seen-mail records? Existing mail may be treated as new again."))) return;

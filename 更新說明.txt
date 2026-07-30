@@ -1,3 +1,10 @@
+v1.2.0 更新內容
+- 新增完整設定備份與驗證後匯入，可還原收件人、排程、通知、語言與原始程式資料夾備忘。
+- 新增診斷 JSON／ZIP，包含外掛版本、Chrome 版本、查詢欄位狀態、錯誤紀錄與最近查詢結果。
+- 新增可選錯誤畫面截圖，預設關閉；只有啟用時才要求可選的 Chrome 除錯權限。
+- 新增作者 Email 與個人網站。
+- 診斷檔案不綁定 Gmail 或任何特定郵件服務，由使用者自行選擇寄送方式。
+
 v1.1.1 更新內容
 - 修正第一位收件人因頁面尚未準備而被跳過。
 - 查詢失敗時自動重試三次並保留實際錯誤。
@@ -9,6 +16,13 @@ v1.1.1 更新內容
 - 新增開啟 Chrome 擴充功能頁、開啟下載資料夾與原始程式資料夾備忘。
 - 每天自動檢查 GitHub 最新版本，並提供下載與雙語升級教學。
 - 新增英文檔名的 User Guide、Upgrade Guide、Quick Installation 與 Release Notes；英文介面的相關按鈕會直接開啟英文文件。
+
+v1.2.0 changes
+- Adds complete settings backup and validated import for recipients, schedules, notifications, language, and the source-folder note.
+- Adds diagnostic JSON/ZIP reports containing extension and Chrome versions, query-field status, error logs, and the latest query result.
+- Adds optional error-page screenshots. The feature is off by default and requests optional Chrome debugger permission only when enabled.
+- Adds the author's email address and website.
+- Keeps diagnostic files independent of Gmail or any specific email provider.
 
 v1.1.1 changes
 - Prevents the first recipient from being skipped before the page is ready.

@@ -15,9 +15,9 @@
       <h1>升級教學</h1>
       <div class="notice"><strong>不要先按「移除」外掛。</strong>保留同一個未封裝外掛項目並覆蓋原資料夾，Chrome 儲存的收件人與設定通常會保留。</div>
       <div class="card"><h2>升級步驟</h2><ol>
-        <li>在設定頁記下「已安裝版本」，並可先從紀錄頁匯出 JSON 備份。</li>
+        <li>在設定頁記下「已安裝版本」，並按「備份全部設定」保存收件人、排程、通知與語言等設定。</li>
         <li>按「複製程式目錄」，取得安裝時記錄的原始資料夾路徑。若尚未記錄，請先找出原資料夾並填入備忘。</li>
-        <li>按「下載最新版 vX.Y.Z」，取得檔名包含版本號的 ZIP，例如 <code>CGUPostalChecker-v1.1.1.zip</code>。</li>
+        <li>按「下載最新版 vX.Y.Z」，取得檔名包含版本號的 ZIP，例如 <code>CGUPostalChecker-v1.2.0.zip</code>。</li>
         <li>按「開啟下載資料夾」，解壓縮 ZIP，確認外掛資料夾直接包含 <code>manifest.json</code>。</li>
         <li>把新版資料夾內的所有檔案覆蓋到第 2 步的原始程式資料夾。不要只覆蓋部分檔案。</li>
         <li>不要按「移除」。回到設定頁按「開啟 Chrome 擴充功能頁」。</li>
@@ -25,15 +25,15 @@
         <li>開啟設定，確認版本、語言、收件人與監控設定仍正確。</li>
         <li>按「立即查詢一次」。若沒有紅色 ! 且每位收件人都有最新查詢時間，即完成升級。</li>
       </ol></div>
-      <div class="card"><h2>若設定消失</h2><p>通常代表刪除了舊外掛後又重新載入，造成新的擴充功能識別狀態。請重新設定收件人；先前匯出的 JSON 目前只供查閱，不能直接匯入設定。</p></div>
+      <div class="card"><h2>若設定消失</h2><p>通常代表刪除了舊外掛後又重新載入，造成新的擴充功能識別狀態。請開啟設定，按「匯入設定」，選取升級前建立的設定備份 JSON。查詢紀錄 JSON 只供查閱，與設定備份不同。</p></div>
     </article>
     <article data-guide-lang="en" hidden>
       <h1>Upgrade Guide</h1>
       <div class="notice"><strong>Do not remove the extension first.</strong> Keep the same unpacked extension entry and replace files in its existing folder so Chrome can retain recipients and settings.</div>
       <div class="card"><h2>Steps</h2><ol>
-        <li>Note the installed version and optionally export the history JSON as a backup.</li>
+        <li>Note the installed version and select <strong>Back up all settings</strong> to save recipients, schedules, notifications, language, and other settings.</li>
         <li>Select <strong>Copy source folder</strong> to retrieve the path saved during installation. If it was never saved, locate the original folder and add it to the note first.</li>
-        <li>Select <strong>Download latest vX.Y.Z</strong> to get a versioned ZIP such as <code>CGUPostalChecker-v1.1.1.zip</code>.</li>
+        <li>Select <strong>Download latest vX.Y.Z</strong> to get a versioned ZIP such as <code>CGUPostalChecker-v1.2.0.zip</code>.</li>
         <li>Select <strong>Open Downloads folder</strong>, extract the ZIP, and confirm the extension folder directly contains <code>manifest.json</code>.</li>
         <li>Copy every new file over the saved source folder. Do not update only some files.</li>
         <li>Do not remove the extension. Select <strong>Open Chrome extensions</strong> in Settings.</li>
@@ -41,7 +41,7 @@
         <li>Verify the version, language, recipients, and monitoring options.</li>
         <li>Select <strong>Check now</strong>. The upgrade is complete when no red ! appears and every recipient has a recent check time.</li>
       </ol></div>
-      <div class="card"><h2>If settings disappear</h2><p>This usually means the old extension was removed before loading the new copy. Configure recipients again. The exported history JSON is for reference and cannot currently restore settings.</p></div>
+      <div class="card"><h2>If settings disappear</h2><p>This usually means the old extension was removed before loading the new copy. Open Settings, select <strong>Import settings</strong>, and choose the settings backup JSON created before upgrading. A history JSON export is for reference only and is different from a settings backup.</p></div>
     </article>
   </main>
   <script src="i18n.js"></script>

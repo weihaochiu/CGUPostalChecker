@@ -15,7 +15,7 @@
       </select>
     </div>
     <article data-guide-lang="zh-TW">
-      <h1>長庚大學自動查詢郵件 v1.1.1</h1>
+      <h1>長庚大學自動查詢郵件 v1.2.0</h1>
       <div class="card"><h2>安裝</h2><ol>
         <li>解壓縮 ZIP 到固定資料夾，例如 <code>C:\Program Files\Google\ChromeExtensions\CGUPostalChecker</code>。</li>
         <li>開啟 <code>chrome://extensions/</code>，啟用「開發人員模式」。</li>
@@ -31,7 +31,7 @@
         <li>沒有數字：成功查詢且為 0 件，或已關閉件數顯示。</li>
         <li>本外掛不會監聽 Gmail；通知信到達後，要等下一輪查詢才會提醒。</li>
       </ul></div>
-      <div class="card"><h2>GitHub 更新</h2><p>預設每天檢查 GitHub 最新版本。下載檔名會包含版本號，例如 <code>CGUPostalChecker-v1.1.1.zip</code>。未封裝外掛無法安全地自動覆寫程式；真正自動安裝更新需要發布到 Chrome Web Store。</p></div>
+      <div class="card"><h2>GitHub 更新</h2><p>預設每天檢查 GitHub 最新版本。下載檔名會包含版本號，例如 <code>CGUPostalChecker-v1.2.0.zip</code>。未封裝外掛無法安全地自動覆寫程式；真正自動安裝更新需要發布到 Chrome Web Store。</p></div>
       <div class="card"><h2>升級流程</h2><ol>
         <li>按「複製程式目錄」取得已記錄的原始路徑。</li>
         <li>按「下載最新版」及「開啟下載資料夾」，解壓縮 ZIP。</li>
@@ -44,9 +44,17 @@
         <li>收到通知信但外掛沒提醒：比較信件時間與上次查詢時間。</li>
         <li>更新失敗：確認可連線 GitHub，稍後手動重試。</li>
       </ul></div>
+      <div class="card"><h2>備份與診斷</h2><ul>
+        <li>「備份全部設定」保存收件人、排程、通知、語言與原始程式資料夾備忘，不含學校帳號密碼。</li>
+        <li>「匯入設定」會先驗證本外掛產生的 JSON 再覆蓋目前設定。</li>
+        <li>診斷 JSON／ZIP 包含外掛與 Chrome 版本、查詢欄位、錯誤紀錄及最近查詢結果。</li>
+        <li>錯誤截圖預設關閉；啟用時才要求可選的除錯權限，且只擷取長庚查詢頁。</li>
+        <li>診斷內容或截圖可能包含姓名、郵件資料及本機路徑，分享前請先確認。</li>
+      </ul></div>
+      <div class="card"><h2>作者資訊</h2><p>Wei-Hao Chiu<br>Email: <a href="mailto:weihao.chiu@gmail.com">weihao.chiu@gmail.com</a><br>個人網頁：<a href="https://weihaochiu.github.io/" target="_blank" rel="noopener noreferrer">https://weihaochiu.github.io/</a></p></div>
     </article>
     <article data-guide-lang="en" hidden>
-      <h1>CGU Postal Mail Checker v1.1.1</h1>
+      <h1>CGU Postal Mail Checker v1.2.0</h1>
       <div class="card"><h2>Installation</h2><ol>
         <li>Extract the ZIP to a permanent folder such as <code>C:\Program Files\Google\ChromeExtensions\CGUPostalChecker</code>.</li>
         <li>Open <code>chrome://extensions/</code> and enable Developer mode.</li>
@@ -62,7 +70,7 @@
         <li>No badge: a successful zero result, or the count badge is disabled.</li>
         <li>The extension does not monitor Gmail. A notification email may arrive before the next query.</li>
       </ul></div>
-      <div class="card"><h2>GitHub updates</h2><p>The extension checks GitHub daily and saves a versioned filename such as <code>CGUPostalChecker-v1.1.1.zip</code>. An unpacked extension cannot safely overwrite itself; fully automatic installation requires Chrome Web Store distribution.</p></div>
+      <div class="card"><h2>GitHub updates</h2><p>The extension checks GitHub daily and saves a versioned filename such as <code>CGUPostalChecker-v1.2.0.zip</code>. An unpacked extension cannot safely overwrite itself; fully automatic installation requires Chrome Web Store distribution.</p></div>
       <div class="card"><h2>Upgrade workflow</h2><ol>
         <li>Select <strong>Copy source folder</strong> to retrieve the saved path.</li>
         <li>Select <strong>Download latest</strong> and <strong>Open Downloads folder</strong>, then extract the ZIP.</li>
@@ -75,6 +83,14 @@
         <li>Email received but no alert: compare the email time with the last query time.</li>
         <li>Update check failed: verify GitHub connectivity and retry later.</li>
       </ul></div>
+      <div class="card"><h2>Backup and diagnostics</h2><ul>
+        <li><strong>Back up all settings</strong> saves recipients, schedules, notifications, language, and the source-folder note without university credentials.</li>
+        <li><strong>Import settings</strong> validates a JSON backup created by this extension before replacing settings.</li>
+        <li>Diagnostic JSON/ZIP files contain extension and Chrome versions, query-field status, error logs, and the latest query result.</li>
+        <li>Error screenshots are off by default. Enabling the option requests the optional debugger permission for the CGU query page only.</li>
+        <li>Diagnostics and screenshots may contain names, mail details, and a local path. Review them before sharing.</li>
+      </ul></div>
+      <div class="card"><h2>Author</h2><p>Wei-Hao Chiu<br>Email: <a href="mailto:weihao.chiu@gmail.com">weihao.chiu@gmail.com</a><br>Website: <a href="https://weihaochiu.github.io/" target="_blank" rel="noopener noreferrer">https://weihaochiu.github.io/</a></p></div>
     </article>
   </main>
   <script src="i18n.js"></script>

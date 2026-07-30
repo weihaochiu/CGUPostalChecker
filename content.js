@@ -138,6 +138,36 @@
     return msg ? cleanText(msg.innerText) : "";
   }
 
+  function buildPageDiagnostics() {
+    const fields = {};
+    for (const [name, selector] of Object.entries(SELECTORS)) {
+      const element = document.querySelector(selector);
+      fields[name] = {
+        selector,
+        present: Boolean(element),
+        tagName: element?.tagName || "",
+        disabled: Boolean(element?.disabled)
+      };
+    }
+
+    const resultGrid = findResultGrid();
+    return {
+      ok: true,
+      collectedAt: new Date().toISOString(),
+      url: location.href,
+      title: document.title,
+      readyState: document.readyState,
+      queryPageReady: isQueryPageReady(),
+      fields,
+      resultGrid: {
+        present: Boolean(resultGrid),
+        id: resultGrid?.id || "",
+        rowCount: resultGrid ? resultGrid.querySelectorAll("tr").length : 0
+      },
+      pageMessage: getPageMessage()
+    };
+  }
+
   async function runRecipient(message) {
     const { runId, tabId, index, recipient } = message;
 
@@ -228,6 +258,10 @@
       if (message.type === "CGU_RUN_RECIPIENT") {
         const result = await runRecipient(message);
         sendResponse(result);
+        return;
+      }
+      if (message.type === "CGU_DIAGNOSE_PAGE") {
+        sendResponse(buildPageDiagnostics());
         return;
       }
       sendResponse({ ok: false, message: "Unknown content message" });

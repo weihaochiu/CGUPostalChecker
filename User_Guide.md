@@ -1,4 +1,4 @@
-# CGU Postal Mail Checker v1.1.1
+# CGU Postal Mail Checker v1.2.0
 
 ## Installation
 
@@ -32,13 +32,28 @@ On first installation, Traditional Chinese locales (`zh-TW`, `zh-Hant`, `zh-HK`,
 
 ## Upgrade workflow
 
-1. Open Settings and select **Copy source folder** to retrieve the saved source path.
+1. Open Settings, select **Back up all settings**, then select **Copy source folder** to retrieve the saved source path.
 2. Select **Download latest vX.Y.Z**; the ZIP filename includes its version.
 3. Select **Open Downloads folder** and extract the downloaded ZIP.
 4. Copy every file from the extracted folder that directly contains `manifest.json` over the saved source folder.
 5. Do not remove the extension. Select **Open Chrome extensions**.
 6. Find the extension at `chrome://extensions/` and select **Reload**.
 7. Verify the version, language, and recipients, then run **Check now** once.
+
+## Backup, import, and diagnostics
+
+- **Back up all settings** saves recipients, schedules, notifications, language, the source-folder note, and the screenshot option. It never contains university credentials.
+- **Import settings** accepts only a validated JSON backup created by this extension.
+- **Generate diagnostic JSON** exports extension and Chrome versions, query-field status, error logs, and the latest query result.
+- **Generate diagnostic ZIP** contains the same JSON and includes the most recent error screenshot when one is available.
+- Error screenshots are off by default. Enabling the option requests the optional debugger permission for the CGU query page only. Disabling it removes the permission and cached screenshot.
+- Diagnostics and screenshots may contain names, mail details, and a local path. Review them before sharing.
+
+## Author
+
+- Wei-Hao Chiu
+- Email: `weihao.chiu@gmail.com`
+- Website: `https://weihaochiu.github.io/`
 
 ## Troubleshooting
 
