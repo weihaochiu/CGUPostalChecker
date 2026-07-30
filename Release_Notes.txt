@@ -1,0 +1,13 @@
+CGU Postal Mail Checker v1.1.1 | Release Notes
+
+- Prevents the first recipient from being skipped before the page is ready.
+- Retries failed recipient queries three times and preserves the actual error.
+- Shows a red ! badge and recipient-level details when any query fails.
+- Clears the error badge only after every recipient succeeds.
+- Adds Traditional Chinese and English interfaces, descriptions, and guides.
+- Detects the Chrome language on first installation; Traditional Chinese locales default to Traditional Chinese and all other locales default to English.
+- Saves GitHub downloads with a versioned filename such as CGUPostalChecker-v1.1.1.zip.
+- Adds buttons for the Chrome extensions page and Downloads folder, plus a saved source-folder note.
+- Checks GitHub daily and provides download links plus upgrade instructions.
+- Adds English-named documentation files so English readers do not need to open Chinese filenames.
+- Opens English-named user and upgrade guides from documentation buttons whenever the interface language is English.

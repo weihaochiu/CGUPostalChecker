@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CGU Postal Mail Checker - Upgrade Guide</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="container guide">
+    <article>
+      <h1>Upgrade Guide</h1>
+      <div class="notice"><strong>Do not remove the extension first.</strong> Keep the same unpacked extension entry and replace files in its existing folder so Chrome can retain recipients and settings.</div>
+      <div class="card"><h2>Steps</h2><ol>
+        <li>Note the installed version and optionally export the history JSON as a backup.</li>
+        <li>Select <strong>Copy source folder</strong> to retrieve the path saved during installation. If it was never saved, locate the original folder and add it to the note first.</li>
+        <li>Select <strong>Download latest vX.Y.Z</strong> to get a versioned ZIP such as <code>CGUPostalChecker-v1.1.1.zip</code>.</li>
+        <li>Select <strong>Open Downloads folder</strong>, extract the ZIP, and confirm the extension folder directly contains <code>manifest.json</code>.</li>
+        <li>Copy every new file over the saved source folder. Do not update only some files.</li>
+        <li>Do not remove the extension. Select <strong>Open Chrome extensions</strong> in Settings.</li>
+        <li>Find the extension at <code>chrome://extensions/</code> and select <strong>Reload</strong>.</li>
+        <li>Verify the version, language, recipients, and monitoring options.</li>
+        <li>Select <strong>Check now</strong>. The upgrade is complete when no red ! appears and every recipient has a recent check time.</li>
+      </ol></div>
+      <div class="card"><h2>If settings disappear</h2><p>This usually means the old extension was removed before loading the new copy. Configure recipients again. The exported history JSON is for reference and cannot currently restore settings.</p></div>
+    </article>
+  </main>
+</body>
+</html>

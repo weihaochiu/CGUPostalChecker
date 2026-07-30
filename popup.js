@@ -223,7 +223,8 @@ document.getElementById("history").addEventListener("click", () => {
 });
 
 document.getElementById("tutorial").addEventListener("click", () => {
-  chrome.tabs.create({ url: chrome.runtime.getURL("使用教學.html") });
+  const filename = currentLanguage === "en" ? "User_Guide.html" : "使用教學.html";
+  chrome.tabs.create({ url: chrome.runtime.getURL(filename) });
 });
 document.getElementById("downloadUpdate").addEventListener("click", () => send("CGU_OPEN_UPDATE_DOWNLOAD"));
 document.getElementById("upgradeGuide").addEventListener("click", () => send("CGU_OPEN_UPGRADE_GUIDE"));

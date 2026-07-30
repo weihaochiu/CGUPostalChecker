@@ -193,7 +193,8 @@ document.getElementById("openHistory").addEventListener("click", () => {
 });
 
 document.getElementById("openTutorial").addEventListener("click", () => {
-  chrome.tabs.create({ url: chrome.runtime.getURL("使用教學.html") });
+  const filename = currentLanguage === "en" ? "User_Guide.html" : "使用教學.html";
+  chrome.tabs.create({ url: chrome.runtime.getURL(filename) });
 });
 
 document.getElementById("language").addEventListener("change", async event => {

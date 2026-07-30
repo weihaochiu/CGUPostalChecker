@@ -18,7 +18,13 @@ Chrome Manifest V3 擴充功能，用於定時查詢長庚大學郵件收發管�
 
 ### 安裝
 
-請開啟 `使用教學.html`；升級既有版本請開啟 `升級教學.html`。
+請開啟 [使用教學.html](./使用教學.html)；升級既有版本請開啟 [升級教學.html](./升級教學.html)。
+
+其他中文文件：
+
+- [使用教學.md](./使用教學.md)
+- [快速安裝.txt](./快速安裝.txt)
+- [更新說明.txt](./更新說明.txt)
 
 ### 重要限制
 
@@ -45,7 +51,13 @@ This Chrome Manifest V3 extension periodically checks the CGU postal mail system
 
 ### Installation
 
-Open `使用教學.html`. For an existing installation, follow `升級教學.html`.
+Open the [English User Guide](./User_Guide.html). For an existing installation, follow the [English Upgrade Guide](./Upgrade_Guide.html).
+
+Other English documents:
+
+- [User Guide (Markdown)](./User_Guide.md)
+- [Quick Installation](./Quick_Install.txt)
+- [Release Notes](./Release_Notes.txt)
 
 ### Important limitations
 

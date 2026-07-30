@@ -73,6 +73,12 @@ function textFor(settings, key, replacements = {}) {
   return CGUI18N.t(settings?.language || "zh-TW", key, replacements);
 }
 
+function guideFileForLanguage(language, type) {
+  const english = CGUI18N.normalizeLanguage(language) === "en";
+  if (type === "upgrade") return english ? "Upgrade_Guide.html" : "升級教學.html";
+  return english ? "User_Guide.html" : "使用教學.html";
+}
+
 function queryErrorText(settings, response = {}) {
   const english = settings?.language === "en";
   const map = {
@@ -1057,7 +1063,11 @@ chrome.notifications.onButtonClicked.addListener(async (notificationId, buttonIn
   if (buttonIndex === 0) {
     await downloadLatestVersion();
   } else if (buttonIndex === 1) {
-    await chrome.tabs.create({ url: chrome.runtime.getURL("升級教學.html"), active: true });
+    const settings = await getSettings();
+    await chrome.tabs.create({
+      url: chrome.runtime.getURL(guideFileForLanguage(settings.language, "upgrade")),
+      active: true
+    });
   }
 });
 
@@ -1106,13 +1116,21 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 
     if (message.type === "CGU_OPEN_TUTORIAL") {
-      await chrome.tabs.create({ url: chrome.runtime.getURL("使用教學.html"), active: true });
+      const settings = await getSettings();
+      await chrome.tabs.create({
+        url: chrome.runtime.getURL(guideFileForLanguage(settings.language, "user")),
+        active: true
+      });
       sendResponse({ ok: true });
       return;
     }
 
     if (message.type === "CGU_OPEN_UPGRADE_GUIDE") {
-      await chrome.tabs.create({ url: chrome.runtime.getURL("升級教學.html"), active: true });
+      const settings = await getSettings();
+      await chrome.tabs.create({
+        url: chrome.runtime.getURL(guideFileForLanguage(settings.language, "upgrade")),
+        active: true
+      });
       sendResponse({ ok: true });
       return;
     }

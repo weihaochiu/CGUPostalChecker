@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CGU Postal Mail Checker - User Guide</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="container guide">
+    <article>
+      <h1>CGU Postal Mail Checker v1.1.1</h1>
+      <div class="card"><h2>Installation</h2><ol>
+        <li>Extract the ZIP to a permanent folder such as <code>C:\Program Files\Google\ChromeExtensions\CGUPostalChecker</code>.</li>
+        <li>Open <code>chrome://extensions/</code> and enable <strong>Developer mode</strong>.</li>
+        <li>Select <strong>Load unpacked</strong> and choose the folder that directly contains <code>manifest.json</code>.</li>
+        <li>Open <a href="https://www4.is.cgu.edu.tw/postal/studentletter.aspx">the CGU postal page</a> and sign in.</li>
+        <li>Open the extension settings, choose a language, add recipients, and save.</li>
+        <li>Save the permanent folder from step 1 in <strong>Source folder note</strong>. Chrome cannot recover the native path automatically later.</li>
+        <li>Select <strong>Check now</strong> and confirm that every recipient succeeds before starting monitoring.</li>
+      </ol><p>On first installation, Traditional Chinese locales default to Traditional Chinese. Every other locale defaults to English. Manual selections are preserved.</p></div>
+      <div class="card"><h2>Icon and notifications</h2><ul>
+        <li>Blue number: current mail count.</li>
+        <li>Red <strong>!</strong>: at least one recipient failed; open the popup or history for details.</li>
+        <li>No badge: a successful zero result, or the count badge is disabled.</li>
+        <li>The extension does not monitor Gmail. A notification email may arrive before the next query.</li>
+      </ul></div>
+      <div class="card"><h2>GitHub updates</h2><ul>
+        <li>The extension checks GitHub once per day and saves a versioned archive such as <code>CGUPostalChecker-v1.1.1.zip</code>.</li>
+        <li><strong>Open Chrome extensions</strong> opens <code>chrome://extensions/</code>.</li>
+        <li><strong>Open Downloads folder</strong> opens the system's default download location.</li>
+        <li>Save the original folder in <strong>Source folder note</strong>; Chrome cannot detect the native Windows path of an unpacked extension.</li>
+        <li>An unpacked extension cannot safely overwrite itself. Fully automatic installation requires Chrome Web Store distribution.</li>
+      </ul></div>
+      <div class="card"><h2>Upgrade workflow</h2><ol>
+        <li>Select <strong>Copy source folder</strong> to retrieve the saved path.</li>
+        <li>Select <strong>Download latest vX.Y.Z</strong> and <strong>Open Downloads folder</strong>, then extract the ZIP.</li>
+        <li>Copy every new file over the original source folder.</li>
+        <li>Select <strong>Open Chrome extensions</strong>. Do not remove the extension; select <strong>Reload</strong>.</li>
+        <li>Verify the version and settings, then run <strong>Check now</strong>.</li>
+      </ol><p>For complete instructions, open <a href="Upgrade_Guide.html">Upgrade_Guide.html</a>.</p></div>
+      <div class="card"><h2>Troubleshooting</h2><ul>
+        <li>Red !: verify the postal page is signed in, then select <strong>Check now</strong>.</li>
+        <li>Email received but no alert: compare the email time with the last query time.</li>
+        <li>Update check failed: verify GitHub connectivity and retry later.</li>
+        <li>No Windows notification: allow notifications for Chrome and this extension.</li>
+      </ul></div>
+    </article>
+  </main>
+</body>
+</html>

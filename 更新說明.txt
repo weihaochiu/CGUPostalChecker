@@ -8,6 +8,7 @@ v1.1.1 更新內容
 - 下載最新版時自動使用含版本號的檔名，例如 CGUPostalChecker-v1.1.1.zip。
 - 新增開啟 Chrome 擴充功能頁、開啟下載資料夾與原始程式資料夾備忘。
 - 每天自動檢查 GitHub 最新版本，並提供下載與雙語升級教學。
+- 新增英文檔名的 User Guide、Upgrade Guide、Quick Installation 與 Release Notes；英文介面的相關按鈕會直接開啟英文文件。
 
 v1.1.1 changes
 - Prevents the first recipient from being skipped before the page is ready.
@@ -19,3 +20,4 @@ v1.1.1 changes
 - Saves GitHub downloads with a versioned filename such as CGUPostalChecker-v1.1.1.zip.
 - Adds buttons for the Chrome extensions page and Downloads folder, plus a saved source-folder note.
 - Checks GitHub daily and provides download links plus a bilingual upgrade guide.
+- Adds English-named User Guide, Upgrade Guide, Quick Installation, and Release Notes files; documentation buttons in the English interface open the English files directly.
