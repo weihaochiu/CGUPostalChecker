@@ -1,3 +1,8 @@
+v1.2.2 更新內容
+- 移除造成 `chrome://extensions/` 警告的無效可選 `debugger` 權限。
+- 錯誤畫面改由長庚查詢頁在本機建立，不使用 Chrome 除錯 API。
+- 擴充功能卡片的名稱、說明與工具列標題依 Chrome 介面語言顯示：繁體中文介面顯示中文，其餘介面顯示英文。
+
 v1.2.1 更新內容
 - 下載診斷 JSON／ZIP 後，顯示開發者 Email `weihao.chiu@gmail.com`，並詢問是否開啟系統預設郵件程式。
 - 郵件會預填收件人、主旨、外掛版本與診斷檔名，不綁定 Gmail 或其他特定服務。
@@ -6,7 +11,7 @@ v1.2.1 更新內容
 v1.2.0 更新內容
 - 新增完整設定備份與驗證後匯入，可還原收件人、排程、通知、語言與原始程式資料夾備忘。
 - 新增診斷 JSON／ZIP，包含外掛版本、Chrome 版本、查詢欄位狀態、錯誤紀錄與最近查詢結果。
-- 新增可選錯誤畫面截圖，預設關閉；只有啟用時才要求可選的 Chrome 除錯權限。
+- 新增可選錯誤畫面截圖，預設關閉。
 - 新增作者 Email 與個人網站。
 - 診斷檔案不綁定 Gmail 或任何特定郵件服務，由使用者自行選擇寄送方式。
 
@@ -22,6 +27,11 @@ v1.1.1 更新內容
 - 每天自動檢查 GitHub 最新版本，並提供下載與雙語升級教學。
 - 新增英文檔名的 User Guide、Upgrade Guide、Quick Installation 與 Release Notes；英文介面的相關按鈕會直接開啟英文文件。
 
+v1.2.2 changes
+- Removes the invalid optional `debugger` permission that caused a warning on `chrome://extensions/`.
+- Creates error-page images locally in the CGU query page without Chrome's debugger API.
+- Localizes the extension card name, description, and action title: Traditional Chinese for a Traditional Chinese Chrome interface and English for all other interface languages.
+
 v1.2.1 changes
 - After a diagnostic JSON/ZIP download, displays the developer email address and asks whether to open the system's default email application.
 - Prefills the recipient, subject, extension version, and diagnostic filename without depending on Gmail or another specific provider.
@@ -30,7 +40,7 @@ v1.2.1 changes
 v1.2.0 changes
 - Adds complete settings backup and validated import for recipients, schedules, notifications, language, and the source-folder note.
 - Adds diagnostic JSON/ZIP reports containing extension and Chrome versions, query-field status, error logs, and the latest query result.
-- Adds optional error-page screenshots. The feature is off by default and requests optional Chrome debugger permission only when enabled.
+- Adds optional error-page screenshots. The feature is off by default.
 - Adds the author's email address and website.
 - Keeps diagnostic files independent of Gmail or any specific email provider.
 

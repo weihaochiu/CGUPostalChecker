@@ -1,0 +1,14 @@
+{
+  "appName": {
+    "message": "長庚大學郵件查詢"
+  },
+  "shortName": {
+    "message": "長庚郵件"
+  },
+  "extensionDescription": {
+    "message": "自動查詢長庚大學郵件收發系統，提供查詢錯誤提示、設定備份與診斷報告。"
+  },
+  "actionTitle": {
+    "message": "長庚大學自動查詢郵件"
+  }
+}

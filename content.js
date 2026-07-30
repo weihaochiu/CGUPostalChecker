@@ -168,6 +168,44 @@
     };
   }
 
+  async function capturePageScreenshot() {
+    if (typeof globalThis.html2canvas !== "function") {
+      throw new Error("Screenshot renderer is unavailable.");
+    }
+
+    const root = document.documentElement;
+    const body = document.body || root;
+    const fullWidth = Math.max(root.scrollWidth, root.clientWidth, body.scrollWidth, body.clientWidth);
+    const fullHeight = Math.max(root.scrollHeight, root.clientHeight, body.scrollHeight, body.clientHeight);
+    const width = Math.min(fullWidth, 1920);
+    const height = Math.min(fullHeight, 3000);
+    const scale = Math.min(1, 1600 / Math.max(width, 1));
+    const canvas = await globalThis.html2canvas(body, {
+      backgroundColor: "#ffffff",
+      logging: false,
+      useCORS: true,
+      allowTaint: false,
+      imageTimeout: 5000,
+      scale,
+      width,
+      height,
+      windowWidth: fullWidth,
+      windowHeight: fullHeight,
+      scrollX: 0,
+      scrollY: 0
+    });
+
+    return {
+      ok: true,
+      dataUrl: canvas.toDataURL("image/jpeg", 0.68),
+      mimeType: "image/jpeg",
+      sourceWidth: fullWidth,
+      sourceHeight: fullHeight,
+      capturedWidth: canvas.width,
+      capturedHeight: canvas.height
+    };
+  }
+
   async function runRecipient(message) {
     const { runId, tabId, index, recipient } = message;
 
@@ -262,6 +300,10 @@
       }
       if (message.type === "CGU_DIAGNOSE_PAGE") {
         sendResponse(buildPageDiagnostics());
+        return;
+      }
+      if (message.type === "CGU_CAPTURE_PAGE_SCREENSHOT") {
+        sendResponse(await capturePageScreenshot());
         return;
       }
       sendResponse({ ok: false, message: "Unknown content message" });

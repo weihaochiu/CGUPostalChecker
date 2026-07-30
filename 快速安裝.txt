@@ -1,4 +1,4 @@
-長庚大學自動查詢郵件 v1.2.1｜快速安裝
+長庚大學自動查詢郵件 v1.2.2｜快速安裝
 
 1. 解壓縮 ZIP 到固定資料夾。
 2. 開啟 chrome://extensions/ 並啟用「開發人員模式」。
@@ -10,7 +10,7 @@
 
 首次安裝：繁體中文 Chrome 預設繁中，其餘語言預設英文。
 
-CGU Postal Mail Checker v1.2.1 | Quick installation
+CGU Postal Mail Checker v1.2.2 | Quick installation
 
 1. Extract the ZIP to a permanent folder.
 2. Open chrome://extensions/ and enable Developer mode.

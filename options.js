@@ -74,12 +74,13 @@ function runtimeMessage(message) {
   });
 }
 
-async function updateScreenshotPermissionStatus() {
-  const granted = await chrome.permissions.contains({ permissions: ["debugger"] });
-  document.getElementById("screenshotPermissionStatus").textContent = granted
-    ? tr("錯誤截圖權限已授予", "Error screenshot permission granted")
-    : tr("錯誤截圖權限未授予", "Error screenshot permission not granted");
-  return granted;
+function updateScreenshotStatus(enabled) {
+  document.getElementById("screenshotPermissionStatus").textContent = enabled
+    ? tr(
+      "錯誤截圖已啟用；只會在查詢錯誤時建立長庚查詢頁的本機畫面",
+      "Error screenshots enabled; a local image of the CGU query page is created only when a query fails"
+    )
+    : tr("錯誤截圖已關閉", "Error screenshots disabled");
 }
 
 function addRecipientCard(recipient = {}) {
@@ -129,13 +130,7 @@ async function loadSettings() {
     document.getElementById(key).checked = Boolean(settings[key]);
   }
 
-  const debuggerGranted = await chrome.permissions.contains({ permissions: ["debugger"] });
-  if (settings.captureScreenshotOnError && !debuggerGranted) {
-    settings.captureScreenshotOnError = false;
-    document.getElementById("captureScreenshotOnError").checked = false;
-    await chrome.storage.local.set({ captureScreenshotOnError: false });
-  }
-  await updateScreenshotPermissionStatus();
+  updateScreenshotStatus(settings.captureScreenshotOnError);
 
   document.getElementById("intervalMinutes").value = Math.max(settings.intervalMinutes || 360, 120);
   document.getElementById("startupDelayMinMinutes").value = settings.startupDelayMinMinutes || 5;
@@ -285,21 +280,8 @@ document.getElementById("copySourceFolder").addEventListener("click", async () =
 document.getElementById("captureScreenshotOnError").addEventListener("change", async event => {
   const checkbox = event.target;
   if (checkbox.checked) {
-    const granted = await chrome.permissions.request({ permissions: ["debugger"] });
-    if (!granted) {
-      checkbox.checked = false;
-      await chrome.storage.local.set({ captureScreenshotOnError: false });
-      document.getElementById("screenshotPermissionStatus").textContent = tr(
-        "未授予權限，錯誤截圖維持關閉",
-        "Permission was not granted; error screenshots remain disabled"
-      );
-      return;
-    }
     await chrome.storage.local.set({ captureScreenshotOnError: true });
-    document.getElementById("screenshotPermissionStatus").textContent = tr(
-      "錯誤截圖已啟用；僅在查詢錯誤時擷取長庚查詢頁",
-      "Error screenshots enabled for the CGU query page only"
-    );
+    updateScreenshotStatus(true);
     return;
   }
 
@@ -308,11 +290,7 @@ document.getElementById("captureScreenshotOnError").addEventListener("change", a
     lastErrorScreenshot: null,
     lastErrorScreenshotStatus: null
   });
-  await chrome.permissions.remove({ permissions: ["debugger"] });
-  document.getElementById("screenshotPermissionStatus").textContent = tr(
-    "錯誤截圖已關閉，既有暫存截圖已清除",
-    "Error screenshots disabled and the cached screenshot was cleared"
-  );
+  updateScreenshotStatus(false);
 });
 
 document.getElementById("backupSettings").addEventListener("click", async () => {
@@ -349,22 +327,10 @@ document.getElementById("importSettingsFile").addEventListener("change", async e
     ));
     if (!confirmed) return;
 
-    let screenshotWarning = "";
-    if (imported.captureScreenshotOnError) {
-      const granted = await chrome.permissions.contains({ permissions: ["debugger"] });
-      if (!granted) {
-        imported.captureScreenshotOnError = false;
-        screenshotWarning = tr(
-          "；原備份的錯誤截圖設定未啟用，請在本機重新授權",
-          "; screenshot capture was not enabled because permission must be granted again on this device"
-        );
-      }
-    }
-
     await chrome.storage.local.set(imported);
     await runtimeMessage({ type: "CGU_SETTINGS_UPDATED" });
     await loadSettings();
-    showDiagnosticStatus(tr(`設定匯入完成${screenshotWarning}`, `Settings imported${screenshotWarning}`));
+    showDiagnosticStatus(tr("設定匯入完成", "Settings imported"));
   } catch (err) {
     showDiagnosticStatus(tr(`匯入失敗：${err.message || err}`, `Import failed: ${err.message || err}`), true);
   }

@@ -10,7 +10,7 @@
 
 診斷檔案下載後，外掛可在使用者確認後開啟系統預設郵件程式，並預填開發者 Email、主旨及診斷檔名。外掛不會自動附加或傳送診斷檔案；使用者必須自行檢查內容、加入附件並送出。
 
-錯誤畫面截圖預設關閉。使用者啟用後，Chrome 會要求可選的 `debugger` 權限，外掛只用該權限擷取長庚郵件查詢頁，並在本機保留最近一次錯誤畫面。關閉功能會移除權限與暫存截圖。截圖可能包含姓名及郵件資料。
+錯誤畫面截圖預設關閉。使用者啟用後，長庚查詢頁只會在查詢錯誤時於本機建立畫面，外掛不使用 Chrome `debugger` 權限，並只保留最近一次錯誤畫面。關閉功能會移除暫存截圖。截圖可能包含姓名及郵件資料。
 
 使用者可在設定頁清除紀錄，或移除擴充功能以刪除 Chrome 本機資料。更新檢查與錯誤截圖均可在設定頁關閉。
 
@@ -24,6 +24,6 @@ Settings backups and diagnostic reports are saved locally only after the user se
 
 After a diagnostic download, the extension can open the system's default email application only after user confirmation and prefill the developer address, subject, and diagnostic filename. It does not attach or send the report automatically; the user must review the contents, add the attachment, and send the message.
 
-Error screenshots are off by default. Enabling the option requests the optional `debugger` permission, which is used only to capture the CGU postal query page. The extension keeps only the latest error screenshot locally. Disabling the feature removes the permission and cached screenshot. A screenshot may contain names and mail details.
+Error screenshots are off by default. When enabled, the CGU query page creates an image locally only after a query error without using Chrome's `debugger` permission. The extension keeps only the latest error screenshot locally. Disabling the feature removes the cached screenshot. A screenshot may contain names and mail details.
 
 Users can clear records in Settings or remove the extension to delete Chrome-local data. Update checks and error screenshots can be disabled in Settings.

@@ -604,7 +604,10 @@ async function waitForTabComplete(tabId, timeoutMs = 15000) {
 
 async function ensureContentScript(tabId) {
   try {
-    await chrome.scripting.executeScript({ target: { tabId }, files: ["content.js"] });
+    await chrome.scripting.executeScript({
+      target: { tabId },
+      files: ["vendor/html2canvas.min.js", "content.js"]
+    });
     return { ok: true };
   } catch (err) {
     console.warn("executeScript warning", err);
@@ -634,37 +637,18 @@ async function captureErrorScreenshot(tabId, context = {}) {
   const settings = await getSettings();
   if (!settings.captureScreenshotOnError || !tabId) return { ok: false, skipped: true };
 
-  const permissionGranted = await chrome.permissions.contains({ permissions: ["debugger"] });
-  if (!permissionGranted) {
-    const status = {
-      ok: false,
-      capturedAt: nowIso(),
-      runId: context.runId || "",
-      error: "Optional debugger permission is not granted."
-    };
-    await chrome.storage.local.set({ lastErrorScreenshotStatus: status });
-    return status;
-  }
-
   const previous = (await chrome.storage.local.get(["lastErrorScreenshotStatus"])).lastErrorScreenshotStatus;
   if (context.runId && previous?.runId === context.runId) return { ok: false, skipped: true, duplicate: true };
 
-  const debuggee = { tabId };
-  let attached = false;
   try {
-    await chrome.debugger.attach(debuggee, "1.3");
-    attached = true;
-    const result = await chrome.debugger.sendCommand(debuggee, "Page.captureScreenshot", {
-      format: "jpeg",
-      quality: 65,
-      fromSurface: true,
-      captureBeyondViewport: false
-    });
-    if (!result?.data) throw new Error("Chrome returned no screenshot data.");
+    const result = await sendToTab(tabId, { type: "CGU_CAPTURE_PAGE_SCREENSHOT" });
+    if (!result?.ok || !result?.dataUrl) {
+      throw new Error(result?.message || "The query page returned no screenshot data.");
+    }
 
     const screenshot = {
-      dataUrl: `data:image/jpeg;base64,${result.data}`,
-      mimeType: "image/jpeg",
+      dataUrl: result.dataUrl,
+      mimeType: result.mimeType || "image/jpeg",
       capturedAt: nowIso(),
       runId: context.runId || "",
       recipient: context.recipient || "",
@@ -694,8 +678,6 @@ async function captureErrorScreenshot(tabId, context = {}) {
     await chrome.storage.local.set({ lastErrorScreenshotStatus: status });
     await appendLog({ type: "screenshot_error", message: status.error });
     return status;
-  } finally {
-    if (attached) await chrome.debugger.detach(debuggee).catch(() => {});
   }
 }
 

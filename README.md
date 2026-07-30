@@ -4,7 +4,7 @@
 
 Chrome Manifest V3 擴充功能，用於定時查詢長庚大學郵件收發管理系統。
 
-### v1.2.1 功能
+### v1.2.2 功能
 
 - 多位收件人與不同郵件狀態、日期條件
 - 查詢頁就緒確認及最多三次自動重試
@@ -12,12 +12,13 @@ Chrome Manifest V3 擴充功能，用於定時查詢長庚大學郵件收發管�
 - 郵件件數 badge、每日一次提醒、查詢紀錄及 JSON 匯出
 - 繁體中文／英文介面、說明與教學；首次安裝時自動偵測 Chrome 語言，繁體中文語系預設繁中，其餘一律預設英文
 - 每天檢查 GitHub 最新版本並提示下載
-- 下載檔名自動包含版本號，例如 `CGUPostalChecker-v1.2.1.zip`
+- 下載檔名自動包含版本號，例如 `CGUPostalChecker-v1.2.2.zip`
 - 可一鍵開啟 `chrome://extensions/` 與預設下載資料夾
 - 可保存原始程式資料夾備忘並一鍵複製；Chrome 不允許外掛自動取得原生 Windows 路徑
 - 可備份與匯入收件人、排程、通知、語言及原始程式資料夾備忘
 - 可輸出診斷 JSON／ZIP，包含外掛與 Chrome 版本、查詢欄位、錯誤紀錄與最近查詢結果；下載後可選擇用系統預設郵件程式寄給開發者
-- 可選擇在錯誤時擷取長庚查詢頁畫面；預設關閉，啟用時才要求可選的除錯權限
+- 可選擇在錯誤時由長庚查詢頁於本機建立畫面；預設關閉，不使用 Chrome `debugger` 權限
+- 擴充功能名稱、說明及工具列標題會依 Chrome 介面語言顯示繁體中文或英文
 
 ### 安裝
 
@@ -40,7 +41,7 @@ Chrome Manifest V3 擴充功能，用於定時查詢長庚大學郵件收發管�
 
 This Chrome Manifest V3 extension periodically checks the CGU postal mail system.
 
-### v1.2.1 features
+### v1.2.2 features
 
 - Multiple recipients with independent status and date filters
 - Page-readiness checks and up to three automatic retries
@@ -48,12 +49,13 @@ This Chrome Manifest V3 extension periodically checks the CGU postal mail system
 - Mail-count badge, once-per-day notifications, history, and JSON export
 - Traditional Chinese and English interfaces, descriptions, and guides; first-run language detection defaults Traditional Chinese locales to Chinese and all other locales to English
 - Daily GitHub version checks with download prompts
-- Versioned download filenames, such as `CGUPostalChecker-v1.2.1.zip`
+- Versioned download filenames, such as `CGUPostalChecker-v1.2.2.zip`
 - One-click access to `chrome://extensions/` and the default Downloads folder
 - A saved source-folder note with one-click copy; Chrome does not expose the native Windows path to extensions
 - Settings backup and import for recipients, schedules, notifications, language, and the source-folder note
 - Diagnostic JSON/ZIP export with extension and Chrome versions, query-field status, error logs, and the latest query result; after downloading, users may open their default email application to contact the developer
-- Optional CGU query-page screenshot capture on errors; it is off by default and requests the optional debugger permission only when enabled
+- Optional local query-page image creation on errors; it is off by default and does not use Chrome's `debugger` permission
+- Localized extension name, description, and action title based on the Chrome interface language
 
 ### Installation
 

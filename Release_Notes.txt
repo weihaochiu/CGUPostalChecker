@@ -1,4 +1,10 @@
-CGU Postal Mail Checker v1.2.1 | Release Notes
+CGU Postal Mail Checker v1.2.2 | Release Notes
+
+- Removes the invalid optional debugger permission that caused a warning on chrome://extensions/.
+- Creates error-page images locally in the CGU query page without Chrome's debugger API.
+- Localizes the extension card name, description, and action title: Traditional Chinese for a Traditional Chinese Chrome interface and English for all other interface languages.
+
+v1.2.1
 
 - After a diagnostic JSON or ZIP download, displays the developer email address and asks whether to open the system's default email application.
 - Prefills the recipient, subject, extension version, and diagnostic filename without depending on Gmail or another specific provider.
@@ -6,7 +12,7 @@ CGU Postal Mail Checker v1.2.1 | Release Notes
 
 - Adds complete settings backup and validated import.
 - Adds diagnostic JSON and ZIP reports with version, browser, query-field, error-log, and latest-result information.
-- Adds optional query-page screenshots on errors. The feature is off by default and requests optional debugger permission only when enabled.
+- Adds optional query-page screenshots on errors. The feature is off by default.
 - Adds author contact information and website.
 - Keeps diagnostic files independent of Gmail or any specific email provider.
 

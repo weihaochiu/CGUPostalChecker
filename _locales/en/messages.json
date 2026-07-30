@@ -1,0 +1,14 @@
+{
+  "appName": {
+    "message": "CGU Postal Checker"
+  },
+  "shortName": {
+    "message": "CGU Postal"
+  },
+  "extensionDescription": {
+    "message": "Automatically checks the CGU postal system, alerts on query errors, backs up settings, and creates diagnostic reports."
+  },
+  "actionTitle": {
+    "message": "CGU Postal Checker"
+  }
+}

@@ -1,4 +1,4 @@
-# CGU Postal Mail Checker v1.2.1
+# CGU Postal Mail Checker v1.2.2
 
 ## Installation
 
@@ -46,7 +46,7 @@ On first installation, Traditional Chinese locales (`zh-TW`, `zh-Hant`, `zh-HK`,
 - **Import settings** accepts only a validated JSON backup created by this extension.
 - **Generate diagnostic JSON** exports extension and Chrome versions, query-field status, error logs, and the latest query result. After downloading, the extension displays `weihao.chiu@gmail.com` and can open the system's default email application; attach the report manually.
 - **Generate diagnostic ZIP** contains the same JSON and includes the most recent error screenshot when one is available.
-- Error screenshots are off by default. Enabling the option requests the optional debugger permission for the CGU query page only. Disabling it removes the permission and cached screenshot.
+- Error screenshots are off by default. When enabled, the CGU query page creates an image locally only after a query error without using Chrome's debugger permission. Disabling the option clears the cached screenshot.
 - Diagnostics and screenshots may contain names, mail details, and a local path. Review them before sharing.
 
 ## Author
